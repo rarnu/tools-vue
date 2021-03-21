@@ -14,5 +14,5 @@ router.beforeEach((to, from, next) => {
 
 // 设置文档标题
 function setDocumentTitle(to) {
-    document.title = `${to.meta.title} - kooriookami`;
+    document.title = `${to.meta.title}`;
 }

@@ -6255,6 +6255,7 @@
                             _this.ctx.shadowOffsetY = 0;
                             _this.ctx.shadowBlur = 0;
                         }
+
                         if (styles.textDecorationLine.length) {
                             _this.ctx.fillStyle = asString(styles.textDecorationColor || styles.color);
                             styles.textDecorationLine.forEach(function (textDecorationLine) {

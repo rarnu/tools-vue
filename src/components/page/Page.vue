@@ -35,7 +35,7 @@
 
 <style lang="scss" scoped>
     .page-container {
-        height: calc(100vh - 60px);
+        height: calc(100vh);
         display: flex;
 
         .page-main {
@@ -53,7 +53,7 @@
 
         .page-form {
             height: 100%;
-            width: 400px;
+            width: 450px;
             flex-shrink: 0;
             border-left: 1px solid $border-color;
         }

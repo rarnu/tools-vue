@@ -11,6 +11,8 @@ import axios from './core/axios';
 import dayjs from 'dayjs';
 import base from '@/plugins/base';
 import yugiohPlugin from '@/plugins/yugioh-plugin';
+import './assets/font/ygo-font.css';
+import './assets/css/all.css';
 
 const app = createApp(App);
 
@@ -30,7 +32,8 @@ if (process.env.NODE_ENV === 'production') {
     app.config.globalProperties.baseURL = 'https://tools.kooriookami.top/api';
 } else {
     // 本地环境
-    app.config.globalProperties.baseURL = 'http://localhost:7010/api';
+    // app.config.globalProperties.baseURL = 'https://localhost:7071/api';
+    app.config.globalProperties.baseURL = 'https://tools.kooriookami.top/api';
 }
 
 export default vm;

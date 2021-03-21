@@ -11,5 +11,9 @@ export default {
     def: 2500,
     description: '以高攻击力著称的传说之龙。任何对手都能将之粉碎，其破坏力不可估量。',
     package: 'SD25-SC001',
-    password: '89631139'
+    password: '89631139',
+    copyright: 'sc',
+    laser: true,
+    radius: true,
+    firstlinecompress: false
 };
