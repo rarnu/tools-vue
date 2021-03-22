@@ -304,7 +304,14 @@
                         placeholder="请输入灵摆效果" @input="inputPendulumDescription"></el-input>
             </el-form-item>
             <el-form-item label="种族" v-if="['monster','pendulum'].includes(form.type)">
-              <el-input v-model="form.monsterType" placeholder="请输入种族"></el-input>
+              <el-row :gutter="10">
+                <el-col :span="20">
+                  <el-input v-model="form.monsterType" placeholder="请输入种族"></el-input>
+                </el-col>
+                <el-col :span="4">
+                  <el-button type="primary" @click="raceDialog = true">输入</el-button>
+                </el-col>
+              </el-row>
             </el-form-item>
             <el-form-item label="ATK" v-if="['monster','pendulum'].includes(form.type)">
               <el-input-number v-model="form.atk" :min="-2" :max="9999" :precision="0"></el-input-number>
@@ -387,10 +394,13 @@
 
           <div class="button-group">
             <el-row :gutter="10">
-              <el-col :span="12">
+              <el-col :span="8">
+                <el-button plain size="medium" @click="effectDialog = true">效果输入</el-button>
+              </el-col>
+              <el-col :span="8">
                 <el-button plain size="medium" @click="kanjiKanaDialog = true">一键注音</el-button>
               </el-col>
-              <el-col :span="12">
+              <el-col :span="8">
                 <el-button plain size="medium" :loading="randomLoading" @click="getRandomCard">随机生成</el-button>
               </el-col>
             </el-row>
@@ -398,6 +408,8 @@
         </div>
 
         <KanjiKanaDialog v-model="kanjiKanaDialog"></KanjiKanaDialog>
+        <RaceDialog v-model="raceDialog" :raceText="form.monsterType" :language="form.language" @transferRace="getRace"></RaceDialog>
+        <EffectDialog v-model="effectDialog"></EffectDialog>
       </template>
     </Page>
   </div>
@@ -409,6 +421,8 @@ import Page from '@/components/page/Page';
 import CompressText from '@/views/yugioh/components/CompressText';
 import CompressTextRed from '@/views/yugioh/components/CompressTextRed';
 import KanjiKanaDialog from '@/views/yugioh/components/KanjiKanaDialog';
+import RaceDialog from "@/views/yugioh/components/RaceDialog";
+import EffectDialog from "@/views/yugioh/components/EffectDialog";
 import html2canvas from '@/assets/js/html2canvas';
 import loadImage from 'blueimp-load-image';
 import scDemo from './sc/sc-demo';
@@ -421,10 +435,12 @@ export default {
 
   name: 'Yugioh',
   components: {
+    EffectDialog,
     Page,
     CompressText,
     CompressTextRed,
     KanjiKanaDialog,
+    RaceDialog,
     AboutDialog
   },
   data() {
@@ -467,7 +483,9 @@ export default {
         redName: false
       },
       lastDescriptionHeight: 300,   // 最后一行效果压缩高度
-      kanjiKanaDialog: false
+      kanjiKanaDialog: false,
+      raceDialog: false,
+      effectDialog: false
     };
   },
   created() {
@@ -484,6 +502,10 @@ export default {
     },
     newCard() {
       Object.assign(this.form, jpDemo);
+    },
+    getRace(race) {
+      // 从 Race 对话框回传过来的
+      this.form.monsterType = race;
     },
     // 刷新字体
     refreshFont() {
@@ -595,7 +617,7 @@ export default {
       this.searchLoading = true;
       this.axios({
         method: 'get',
-        url: 'https://tools.kooriookami.top/api/yugioh/card/' + this.form.password,
+        url: '/yugioh/card/' + this.form.password,
         params: {
           lang: this.form.language
         }

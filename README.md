@@ -16,3 +16,7 @@
     网站的建设离不开大家的支持，如果这个小工具对你有用，可以选择赞助，让它可以活的更久一些。
 ![alt 属性文本](./src/assets/image/ali-qr.jpg)
 ![alt 属性文本](./src/assets/image/wx-qr.png)
+
+## 关于 MERGE
+
+由于此项目 fork 后，仅供 election-diy 使用，也做了大量的本地化修改，以至于目前已无法 merge 回原作者处，因此就保持现状了。
