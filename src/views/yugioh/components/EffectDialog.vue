@@ -79,17 +79,21 @@ export default {
     };
   },
   created() {
-    ipcRenderer.on('translate-reply', (event, args) => {
-      if (!args.texts) {
-        this.$message.warning('翻译失败，请稍后重试');
-        return;
-      }
-      let str = '';
-      args.texts.forEach((item) => {
-        str += this.kanjiToKana(item) + '\n';
+    try {
+      ipcRenderer.on('translate-reply', (event, args) => {
+        if (!args.texts) {
+          this.$message.warning('翻译失败，请稍后重试');
+          return;
+        }
+        let str = '';
+        args.texts.forEach((item) => {
+          str += this.kanjiToKana(item) + '\n';
+        });
+        this.form.textjp += str;
       });
-      this.form.textjp += str;
-    });
+    } catch (err) {
+
+    }
   },
   mounted() {
     this.effectKeys = Object.keys(effectList);

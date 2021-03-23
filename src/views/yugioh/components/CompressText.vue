@@ -1,7 +1,7 @@
 <template>
     <span v-compress-text="compressParams">
         <template v-for="item in textList">
-            <span v-if="typeof item === 'object'" class="ruby">{{ item.ruby }}<span class="rt" v-compress-rt>{{ item.rt }}</span></span>
+            <span v-if="typeof item === 'object'" :class="['ruby', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '']">{{ item.ruby }}<span class="rt" v-compress-rt>{{ item.rt }}</span></span>
             <span v-else>{{ item }}</span>
         </template>
     </span>
@@ -10,10 +10,11 @@
 <script>
 export default {
   name: 'CompressText',
-  props: ['text', 'width', 'height', 'language', 'fontLoading', 'autoSizeElement'],
+  props: ['text', 'width', 'height', 'language', 'fontLoading', 'autoSizeElement', 'specColor'],
   computed: {
     compressParams() {
       return {
+        specColor: this.specColor,
         width: this.width,
         height: this.height,
         language: this.language,
@@ -124,6 +125,7 @@ export default {
   position: relative;
 
   .rt {
+    -webkit-text-stroke: 0 transparent;
     font-family: ygo-tip, sans-serif;
     font-size: 16px;
     font-weight: bold;
@@ -142,4 +144,29 @@ export default {
     }
   }
 }
+
+.red {
+  -webkit-background-clip: text;
+  background-image: linear-gradient(#a31818, #ff5050, #a31818);
+  color: transparent;
+  display: inline-block;
+  -webkit-text-stroke: 1px #800000;
+}
+
+.gold {
+  -webkit-background-clip: text;
+  background-image: linear-gradient(#DAA520, #FFFF00, #DAA520);
+  color: transparent;
+  display: inline-block;
+  -webkit-text-stroke: 1px #A0522D;
+}
+
+.silver {
+  -webkit-background-clip: text;
+  background-image: linear-gradient(#C0C0C0, #F5F5F5, #C0C0C0);
+  color: transparent;
+  display: inline-block;
+  -webkit-text-stroke: 1px #696969;
+}
+
 </style>

@@ -5,12 +5,7 @@
         <div class="yugioh-card" :class="cardClass" :style="cardStyle" ondragstart="return false">
 
           <div class="card-name" v-name-color="form.color">
-            <div v-if="form.redName === false">
-              <CompressText :text="form.name" :fontLoading="fontLoading" :width="1030" :height="200"></CompressText>
-            </div>
-            <div v-else-if="form.redName === true">
-              <CompressTextRed :text="form.name" :fontLoading="fontLoading" :width="1030" :height="200"></CompressTextRed>
-            </div>
+            <CompressText :text="form.name" :fontLoading="fontLoading" :width="1030" :height="200" :specColor="form.redName"></CompressText>
           </div>
           <div class="card-attribute">
             <el-image :src="attributeSrc"></el-image>
@@ -208,12 +203,9 @@
               </el-row>
             </el-form-item>
             <el-form-item label="卡图">
-              <el-row :gutter="10">
-                <el-col :span="8">
-                  <el-button type="primary" style="width: 100%" :loading="exportLoading" @click="exportImage">普通导出</el-button>
-                </el-col>
-                <el-col :span="8">
-                  <el-button type="success" style="width: 100%" :loading="exportLoading" @click="screenshotImage">截图导出</el-button>
+              <el-row :gutter="0">
+                <el-col :span="16">
+                  <el-button type="success" style="width: 100%" :loading="exportLoading" @click="exportImage">导出卡图</el-button>
                 </el-col>
               </el-row>
             </el-form-item>
@@ -373,9 +365,23 @@
               </el-col>
             </el-row>
             <el-form-item label="闪卡">
-              <el-switch v-model="form.flash0" active-text="背景闪"></el-switch>&nbsp;&nbsp;
-              <el-switch v-model="form.flash1" active-text="效果框闪"></el-switch>&nbsp;&nbsp;
-              <el-switch v-model="form.redName" active-text="红碎(试作)"></el-switch>
+              <el-row :gutter="10">
+                <el-col :span="8">
+                  <el-switch v-model="form.flash0" active-text="背景闪"></el-switch>&nbsp;&nbsp;
+                </el-col>
+                <el-col :span="8">
+                  <el-switch v-model="form.flash1" active-text="效果框闪"></el-switch>&nbsp;&nbsp;
+                </el-col>
+                <el-col :span="8">
+                  <el-select v-model="form.redName">
+                    <el-option label="无" value=""></el-option>
+                    <el-option label="红碎" value="1"></el-option>
+                    <el-option label="金字" value="2"></el-option>
+                    <el-option label="银字" value="3"></el-option>
+                  </el-select>
+                </el-col>
+              </el-row>
+
             </el-form-item>
             <el-form-item label="卡面">
               <el-radio-group v-model="form.flash2">
@@ -419,7 +425,6 @@
 <script>
 import Page from '@/components/page/Page';
 import CompressText from '@/views/yugioh/components/CompressText';
-import CompressTextRed from '@/views/yugioh/components/CompressTextRed';
 import KanjiKanaDialog from '@/views/yugioh/components/KanjiKanaDialog';
 import RaceDialog from "@/views/yugioh/components/RaceDialog";
 import EffectDialog from "@/views/yugioh/components/EffectDialog";
@@ -438,7 +443,6 @@ export default {
     EffectDialog,
     Page,
     CompressText,
-    CompressTextRed,
     KanjiKanaDialog,
     RaceDialog,
     AboutDialog
@@ -480,7 +484,7 @@ export default {
         flash0: false,
         flash1: false,
         flash2: 0,
-        redName: false
+        redName: ''
       },
       lastDescriptionHeight: 300,   // 最后一行效果压缩高度
       kanjiKanaDialog: false,
@@ -677,17 +681,6 @@ export default {
       }).finally(() => {
         this.exportLoading = false;
       });
-    },
-    screenshotImage() {
-      if (this.form.scale !== 0.5) {
-        this.$message.warning('缩放必须是 0.5');
-        return;
-      }
-      if (this.form.name.trim() === '') {
-        this.$message.warning('卡名不能为空');
-        return;
-      }
-      ipcRenderer.send('capture', {name: this.cardName});
     }
   },
   computed: {
