@@ -437,6 +437,7 @@ import scDemo from './sc/sc-demo';
 import tcDemo from './tc/tc-demo';
 import jpDemo from './jp/jp-demo';
 import enDemo from './en/en-demo';
+import asDemo from './as/as-demo';
 import AboutDialog from '@/components/dialog/AboutDialog';
 
 export default {
@@ -532,6 +533,8 @@ export default {
         Object.assign(this.form, jpDemo);
       } else if (value === 'en') {
         Object.assign(this.form, enDemo);
+      } else if (value === 'as') {
+        Object.assign(this.form, asDemo);
       }
       this.refreshFont();
     },
