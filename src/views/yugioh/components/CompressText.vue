@@ -1,8 +1,10 @@
 <template>
     <span v-compress-text="compressParams">
         <template v-for="item in textList">
-            <span v-if="typeof item === 'object'" :class="['ruby', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '']">{{ item.ruby }}<span class="rt" v-compress-rt>{{ item.rt }}</span></span>
-            <span v-else>{{ item }}</span>
+            <span v-if="typeof item === 'object'"
+                  :class="['ruby', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '', specColor === '4' ? 'blue' : '']"
+            >{{ item.ruby }}<span class="rt" v-compress-rt>{{ item.rt }}</span></span>
+            <span v-else :class="['ruby', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '', specColor === '4' ? 'blue' : '']">{{ item }}</span>
         </template>
     </span>
 </template>
@@ -151,6 +153,14 @@ export default {
   color: transparent;
   display: inline-block;
   -webkit-text-stroke: 1px #800000;
+}
+
+.blue {
+  -webkit-background-clip: text;
+  background-image: linear-gradient(#8600FF, #CA8EFF, #96FED1, #8600FF);
+  color: transparent;
+  display: inline-block;
+  -webkit-text-stroke: 1px #5B00AE;
 }
 
 .gold {

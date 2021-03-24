@@ -134,7 +134,11 @@
           </div>
 
           <div class="card-atk" v-if="['monster','pendulum'].includes(form.type)">
-            <span v-if="form.atk >= 0">{{ form.atk }}</span>
+            <span v-if="form.atk >= 10000">
+              <CompressText :text="`${form.atk}`" :width="400" :height="61"></CompressText>
+            </span>
+
+            <span v-if="form.atk >= 0 && form.atk <= 9999">{{ form.atk }}</span>
             <span v-else-if="form.atk === -1">?</span>
             <span v-else-if="form.atk === -2"><span class="card-atk-infinate"><b>∞</b></span></span>
           </div>
@@ -306,11 +310,11 @@
               </el-row>
             </el-form-item>
             <el-form-item label="ATK" v-if="['monster','pendulum'].includes(form.type)">
-              <el-input-number v-model="form.atk" :min="-2" :max="9999" :precision="0"></el-input-number>
+              <el-input-number v-model="form.atk" :min="-2" :max="999999" :precision="0"></el-input-number>
               <span class="tip">（? 输入 -1）（∞ 输入 -2）</span>
             </el-form-item>
             <el-form-item label="DEF" v-if="(form.type==='monster'&&form.cardType!=='link')||form.type==='pendulum'">
-              <el-input-number v-model="form.def" :min="-2" :max="9999" :precision="0"></el-input-number>
+              <el-input-number v-model="form.def" :min="-2" :max="999999" :precision="0"></el-input-number>
               <span class="tip">（? 输入 -1）（∞ 输入 -2）</span>
             </el-form-item>
             <el-form-item label="箭头" v-if="form.type==='monster'&&form.cardType==='link'">
@@ -378,10 +382,10 @@
                     <el-option label="红碎" value="1"></el-option>
                     <el-option label="金字" value="2"></el-option>
                     <el-option label="银字" value="3"></el-option>
+                    <el-option label="蓝碎" value="4"></el-option>
                   </el-select>
                 </el-col>
               </el-row>
-
             </el-form-item>
             <el-form-item label="卡面">
               <el-radio-group v-model="form.flash2">
@@ -392,7 +396,6 @@
                 <el-radio-button label="4">4</el-radio-button>
               </el-radio-group>
             </el-form-item>
-
             <el-form-item label="缩放">
               <el-slider v-model="form.scale" :min="0.1" :max="1" :step="0.05"></el-slider>
             </el-form-item>
