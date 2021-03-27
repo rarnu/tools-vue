@@ -1,7 +1,7 @@
 @font-face {
-    font-family: "astral";
-    src: url("astral.woff2") format("woff2"),
-    url("astral.woff") format("woff");
+    font-family: "ygo-astral";
+    src: url("ygo-astral.woff2") format("woff2"),
+    url("ygo-astral.woff") format("woff");
     font-display: swap;
 }
 

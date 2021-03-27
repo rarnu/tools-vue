@@ -2,6 +2,7 @@ export default {
     language: 'jp',
     name: '[青眼の白龍(ブルーアイズ・ホワイト・ドラゴン)]',
     type: 'monster',
+    arrowList: [],
     attribute: 'light',
     image: require('@/assets/image/blue-eyes.jpg'),
     cardType: 'normal',

@@ -1,10 +1,15 @@
 <template>
   <div class="about-dialog-container">
-    <el-dialog title="关于游戏王卡片制作器 2.2.7" :modelValue="modelValue" width="500px" :before-close="closeDialog">
+    <el-dialog title="关于游戏王卡片制作器 2.5.0" :modelValue="modelValue" width="500px" :before-close="closeDialog">
       <div class="about-main">
         <p>本软件遵从 MIT 开源协议</p>
-        <p>开源地址:
-          <el-button type="text" @click="toGithubRarnu">github.com/rarnu/electron-diy</el-button>
+        <p>开源地址:</p>
+        <p>
+          &nbsp;&nbsp;&nbsp;&nbsp;制卡器 JS 版: &nbsp;<el-button type="text" @click="toGithubRarnu">https://github.com/rarnu/tools-vue</el-button>
+        </p>
+        <p>
+
+          &nbsp;&nbsp;&nbsp;&nbsp;Electron 桌面端: &nbsp;<el-button type="text" @click="toGithubRarnu">github.com/rarnu/electron-diy</el-button>
         </p>
         <p><b>依赖的开源项目</b></p>
         <p>&nbsp;&nbsp;
@@ -19,6 +24,10 @@
         <p>&nbsp;&nbsp;
           <el-button type="text">tools.kooriookami.top/api</el-button>
           提供各语言的卡片效果数据
+        </p>
+        <p>&nbsp;&nbsp;
+          <el-button type="text">developer.baidu.com</el-button>
+          提供卡片效果的翻译 API
         </p>
       </div>
       <template #footer>

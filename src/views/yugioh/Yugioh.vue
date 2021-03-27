@@ -19,6 +19,10 @@
             <el-image v-for="item in form.rank" :src="baseImage('/rank.png')"></el-image>
           </div>
 
+          <div class="card-rank" v-if="showMinusLevel" :style="minusLevelStyle">
+            <el-image v-for="item in form.level" :src="baseImage('/minus.png')"></el-image>
+          </div>
+
           <div class="spell-trap" v-if="['spell','trap'].includes(form.type)">
             <span>{{ form.language === 'en' ? '[' : '【' }}</span>
             <CompressText :text="spellTrapName" :fontLoading="fontLoading"></CompressText>
@@ -83,6 +87,18 @@
             <el-image :src="baseImage('/arrow-left-off.png')" style="top: 771px;left: 87px" v-show="!form.arrowList.includes(7)"></el-image>
             <el-image :src="baseImage('/arrow-left-up-off.png')" style="top: 313px;left: 109px" v-show="!form.arrowList.includes(8)"></el-image>
           </div>
+          <div class="link-arrow" v-if="form.type === 'pendulum' && form.pendulumType === 'link-pendulum'">
+            <el-image :src="baseImage('/arrow-p-board.png')" style="top: 320px; left:42px;"></el-image>
+            <el-image :src="baseImage('/arrow-p-up.png')" style="top: 327px;left: 567px" v-show="form.arrowList.includes(1)"></el-image>
+            <el-image :src="baseImage('/arrow-p-down.png')" style="top: 1240px;left: 567px" v-show="form.arrowList.includes(5)"></el-image>
+            <el-image :src="baseImage('/arrow-p-left.png')" style="top: 715px;left: 54px" v-show="form.arrowList.includes(7)"></el-image>
+            <el-image :src="baseImage('/arrow-p-right.png')" style="top: 715px;left: 1259px" v-show="form.arrowList.includes(3)"></el-image>
+            <el-image :src="baseImage('/arrow-p-left-up.png')" style="top: 350px;left: 80px" v-show="form.arrowList.includes(8)"></el-image>
+            <el-image :src="baseImage('/arrow-p-left-down.png')" style="top: 1180px;left: 80px" v-show="form.arrowList.includes(6)"></el-image>
+            <el-image :src="baseImage('/arrow-p-right-up.png')" style="top: 350px;left: 1186px" v-show="form.arrowList.includes(2)"></el-image>
+            <el-image :src="baseImage('/arrow-p-right-down.png')" style="top: 1180px;left: 1186px" v-show="form.arrowList.includes(4)"></el-image>
+
+          </div>
 
           <div class="card-description" v-card-description>
             <div v-if="['monster','pendulum'].includes(form.type)" class="card-effect">
@@ -129,8 +145,8 @@
 
           <div class="atk-def-link">
             <el-image :src="baseImage('/atk-def.svg')"
-                      v-if="(form.type==='monster'&&form.cardType!=='link')||form.type==='pendulum'"></el-image>
-            <el-image :src="baseImage('/atk-link.svg')" v-if="form.type==='monster'&&form.cardType==='link'"></el-image>
+                      v-if="(form.type==='monster'&&form.cardType!=='link')||(form.type==='pendulum' && form.pendulumType !== 'link-pendulum')"></el-image>
+            <el-image :src="baseImage('/atk-link.svg')" v-if="(form.type==='monster'&&form.cardType==='link') || (form.type === 'pendulum' && form.pendulumType === 'link-pendulum')"></el-image>
           </div>
 
           <div class="card-atk" v-if="['monster','pendulum'].includes(form.type)">
@@ -143,13 +159,13 @@
             <span v-else-if="form.atk === -2"><span class="card-atk-infinate"><b>∞</b></span></span>
           </div>
 
-          <div class="card-def" v-if="(form.type==='monster'&&form.cardType!=='link')||form.type==='pendulum'">
+          <div class="card-def" v-if="(form.type==='monster'&&form.cardType!=='link')||(form.type==='pendulum' && form.pendulumType !== 'link-pendulum')">
             <span v-if="form.def >= 0">{{ form.def }}</span>
             <span v-else-if="form.def === -1">?</span>
             <span v-else-if="form.atk === -2"><span class="card-def-infinate"><b>∞</b></span></span>
           </div>
 
-          <div class="card-link" v-if="form.type==='monster'&&form.cardType==='link'">
+          <div class="card-link" v-if="(form.type==='monster'&&form.cardType==='link') || (form.type === 'pendulum' && form.pendulumType === 'link-pendulum')">
             <span>{{ form.arrowList.length }}</span>
           </div>
 
@@ -180,6 +196,34 @@
         </div>
       </template>
 
+      <template #ydk>
+        <div class="form-ydk">
+          <el-form ref="form" label-width="auto" size="small">
+            <el-form-item label="YDK">
+              <el-row :gutter="0">
+                <el-col :span="16">
+                  <el-upload action="/" :show-file-list="false" accept="application/text" :before-upload="importYDK">
+                    <el-button type="success" style="width: 100%">导入 YDK</el-button>
+                  </el-upload>
+                </el-col>
+              </el-row>
+            </el-form-item>
+            <el-form-item label-width="0px">
+              <el-virtual-list-item v-for="(item) in ydkData">
+                <div style=" width: 100%; height: 40px; line-height: 40px; border-bottom: 1px solid lightgray">
+                  <div style="float: left; width: 220px; height: 40px;">
+                    <CompressText :text="item.name" :width="220" :height="40"></CompressText>
+                  </div>
+                  <div style="float: right; width: 32px; height: 40px;">
+                    <el-button type="warning" style="float: right; width: 32px; height: 32px; margin-top: 4px; padding: 0" @click.stop="showYdkCard(item.id);">显示</el-button>
+                  </div>
+                </div>
+              </el-virtual-list-item>
+            </el-form-item>
+          </el-form>
+        </div>
+      </template>
+
       <template #form>
         <div class="form-main">
           <div class="font-loading" v-if="fontLoading">
@@ -207,9 +251,12 @@
               </el-row>
             </el-form-item>
             <el-form-item label="卡图">
-              <el-row :gutter="0">
-                <el-col :span="16">
+              <el-row :gutter="10">
+                <el-col :span="8">
                   <el-button type="success" style="width: 100%" :loading="exportLoading" @click="exportImage">导出卡图</el-button>
+                </el-col>
+                <el-col :span="8">
+                  <el-switch active-text="打印模式" v-model="printMode"></el-switch>
                 </el-col>
               </el-row>
             </el-form-item>
@@ -219,6 +266,7 @@
                 <el-option label="繁体中文" value="tc"></el-option>
                 <el-option label="日文" value="jp"></el-option>
                 <el-option label="英文" value="en"></el-option>
+                <el-option label="星光体" value="as"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="卡名">
@@ -270,6 +318,7 @@
                 <el-option label="仪式" value="ritual"></el-option>
                 <el-option label="融合" value="fusion"></el-option>
                 <el-option label="同调" value="synchro"></el-option>
+                <el-option label="黑暗同调" value="darksync"></el-option>
                 <el-option label="超量" value="xyz"></el-option>
                 <el-option label="连接" value="link"></el-option>
                 <el-option label="衍生物" value="token"></el-option>
@@ -282,15 +331,18 @@
                 <el-option label="仪式／灵摆" value="ritual-pendulum"></el-option>
                 <el-option label="融合／灵摆" value="fusion-pendulum"></el-option>
                 <el-option label="同调／灵摆" value="synchro-pendulum"></el-option>
+                <el-option label="黑暗同调／灵摆" value="darksync-pendulum"></el-option>
                 <el-option label="超量／灵摆" value="xyz-pendulum"></el-option>
+                <el-option label="链接／灵摆" value="link-pendulum"></el-option>
               </el-select>
             </el-form-item>
-            <el-form-item label="星级" v-if="showLevel">
+            <el-form-item label="星级" v-if="showLevel || showMinusLevel">
               <el-input-number v-model="form.level" :min="0" :max="13" :precision="0"></el-input-number>
             </el-form-item>
             <el-form-item label="阶级" v-if="showRank">
               <el-input-number v-model="form.rank" :min="0" :max="13" :precision="0"></el-input-number>
             </el-form-item>
+
             <el-form-item label="刻度" v-if="form.type==='pendulum'">
               <el-input-number v-model="form.pendulumScale" :min="-1" :max="13" :precision="0"></el-input-number>
               <span class="tip">（? 输入 -1）</span>
@@ -317,7 +369,7 @@
               <el-input-number v-model="form.def" :min="-2" :max="999999" :precision="0"></el-input-number>
               <span class="tip">（? 输入 -1）（∞ 输入 -2）</span>
             </el-form-item>
-            <el-form-item label="箭头" v-if="form.type==='monster'&&form.cardType==='link'">
+            <el-form-item label="箭头" v-if="(form.type==='monster'&& form.cardType==='link') || (form.type === 'pendulum' && form.pendulumType === 'link-pendulum')">
               <div class="arrow-form">
                 <div class="arrow-item" v-for="item in [8,1,2,7,9,3,6,5,4]" @click="toggleArrow(item)" :style="arrowItemStyle(item)">
                   <i class="fas fa-arrow-alt-up" v-if="item===1"></i>
@@ -371,10 +423,10 @@
             <el-form-item label="闪卡">
               <el-row :gutter="10">
                 <el-col :span="8">
-                  <el-switch v-model="form.flash0" active-text="背景闪"></el-switch>&nbsp;&nbsp;
+                  <el-switch v-model="form.flash0" active-text="背景闪" :disabled="printMode"></el-switch>&nbsp;&nbsp;
                 </el-col>
                 <el-col :span="8">
-                  <el-switch v-model="form.flash1" active-text="效果框闪"></el-switch>&nbsp;&nbsp;
+                  <el-switch v-model="form.flash1" active-text="效果框闪" :disabled="printMode"></el-switch>&nbsp;&nbsp;
                 </el-col>
                 <el-col :span="8">
                   <el-select v-model="form.redName">
@@ -388,7 +440,7 @@
               </el-row>
             </el-form-item>
             <el-form-item label="卡面">
-              <el-radio-group v-model="form.flash2">
+              <el-radio-group v-model="form.flash2" :disabled="printMode">
                 <el-radio-button label="0">0</el-radio-button>
                 <el-radio-button label="1">1</el-radio-button>
                 <el-radio-button label="2">2</el-radio-button>
@@ -439,6 +491,7 @@ import jpDemo from './jp/jp-demo';
 import enDemo from './en/en-demo';
 import asDemo from './as/as-demo';
 import AboutDialog from '@/components/dialog/AboutDialog';
+import ydk from "@/assets/js/ydk";
 
 export default {
 
@@ -493,7 +546,9 @@ export default {
       lastDescriptionHeight: 300,   // 最后一行效果压缩高度
       kanjiKanaDialog: false,
       raceDialog: false,
-      effectDialog: false
+      effectDialog: false,
+      ydkData: [],       // 读入 YDK 时填充
+      printMode: false  // 打印模式，将使用另一套卡模
     };
   },
   created() {
@@ -666,6 +721,26 @@ export default {
           this.$message.error('数据导入失败');
         }
       });
+      return false;
+    },
+    importYDK(file) {
+      let reader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = (e => {
+        try {
+          let cardList = e.target?.result?.split('\n').filter(e => !e.startsWith('#') && !e.startsWith('!') && e.trim() !== '');
+          ydk.getCardNameList(cardList, this.form.language, (list) => {
+            this.ydkData = list;
+          });
+        } catch (e) {
+          this.$message.error('导入 YDK 失败');
+        }
+      });
+      return false;
+    },
+    showYdkCard(id) {
+      this.form.password = id;
+      this.searchCardByPassword();
     },
     exportJson() {
       let data = JSON.stringify(this.form);
@@ -695,17 +770,18 @@ export default {
     },
     cardStyle() {
       let background;
+      let cp = this.printMode ? 'pcard' : 'card';
       if (this.form.cardBack) {
         let u = this.baseImage('/card-back.png');
         background = `url(${u}) no-repeat center/cover`;
       } else if (this.form.type === 'monster') {
-        let u = this.baseImage(`/card-${this.form.cardType}.png`);
+        let u = this.baseImage(`/${cp}-${this.form.cardType}.png`);
         background = `url(${u}) no-repeat center/cover`;
       } else if (this.form.type === 'pendulum') {
-        let u = this.baseImage(`/card-${this.form.pendulumType}.png`);
+        let u = this.baseImage(`/${cp}-${this.form.pendulumType}.png`);
         background = `url(${u}) no-repeat center/cover`;
       } else {
-        let u = this.baseImage(`/card-${this.form.type}.png`);
+        let u = this.baseImage(`/${cp}-${this.form.type}.png`);
         background = `url(${u}) no-repeat center/cover`;
       }
       return {
@@ -778,6 +854,15 @@ export default {
       }
       return flag;
     },
+    showMinusLevel() {
+      let flag = false;
+      if (this.form.type === 'monster') {
+        flag = this.form.cardType === 'darksync';
+      } else if (this.form.type === 'pendulum') {
+        flag = this.form.pendulumType === 'darksync-pendulum';
+      }
+      return flag;
+    },
     levelStyle() {
       let right;
       if (this.form.level < 13) {
@@ -800,18 +885,29 @@ export default {
         left: left
       }
     },
+    minusLevelStyle() {
+      let left;
+      if (this.form.level < 13) {
+        left = '147px';
+      } else {
+        left = '100px';
+      }
+      return {
+        left: left
+      }
+    },
     imageStyle() {
       let left, top, width, height;
       if (this.form.type === 'pendulum') {
-        left = '96px';
-        top = '367px';
-        width = '1201px';
-        height = '1201px';
+        left = '94px';
+        top = '365px';
+        width = '1206px';
+        height = '1204px';
       } else {
         left = '171px';
-        top = '376px';
-        width = '1051px';
-        height = '1051px';
+        top = '373px';
+        width = '1053px';
+        height = '1053px';
       }
       return {
         left: left,
@@ -847,7 +943,7 @@ export default {
         right = '148px';
       }
       return {
-        color: this.form.type === 'monster' && this.form.cardType === 'xyz' ? 'white' : 'black',
+        color: this.form.type === 'monster' && (this.form.cardType === 'xyz') ? 'white' : 'black',
         top: top,
         left: left,
         right: right
@@ -883,8 +979,8 @@ export default {
       // 文本和注音颜色分开控制
       let color = 'black';
       // 自动颜色
-      if ((that.form.type === 'monster' && ['xyz', 'link'].includes(that.form.cardType)) || ['spell', 'trap'].includes(that.form.type) ||
-          (that.form.type === 'pendulum' && ['xyz-pendulum', 'link-pendulum'].includes(that.form.pendulumType))) {
+      if ((that.form.type === 'monster' && ['xyz', 'link', 'darksync'].includes(that.form.cardType)) || ['spell', 'trap'].includes(that.form.type) ||
+          (that.form.type === 'pendulum' && ['xyz-pendulum', 'link-pendulum', 'darksync-pendulum'].includes(that.form.pendulumType))) {
         color = 'white';
       }
       el.style.color = binding.value || color;
@@ -911,6 +1007,15 @@ export default {
           this.form.image = data.image.toDataURL('image/png', 1);
         });
       }
+    },
+    'printMode'() {
+      if (this.printMode) {
+        this.form.flash0 = false;
+        this.form.flash1 = false;
+        this.form.flash2 = 0;
+        this.form.laser = false;
+        this.form.radius = false;
+      }
     }
   }
 };
@@ -921,8 +1026,10 @@ export default {
 @import "./tc/tc";
 @import "./jp/jp";
 @import "./en/en";
+@import "./as/as";
 
 .yugioh-container {
+
   .yugioh-card {
     width: 1393px;
     height: 2031px;
@@ -1185,6 +1292,10 @@ export default {
         display: none;
       }
     }
+  }
+
+  .form-ydk {
+
   }
 
   .form-main {
