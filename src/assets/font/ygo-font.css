@@ -1,4 +1,11 @@
 @font-face {
+    font-family: "ygo-orichalcos";
+    src: url("ygo-orichalcos.woff2") format("woff2"),
+    url("ygo-orichalcos.woff") format("woff");
+    font-display: swap;
+}
+
+@font-face {
     font-family: "ygo-astral";
     src: url("ygo-astral.woff2") format("woff2"),
     url("ygo-astral.woff") format("woff");

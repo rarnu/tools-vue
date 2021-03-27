@@ -23,11 +23,18 @@
             <el-image v-for="item in form.level" :src="baseImage('/minus.png')"></el-image>
           </div>
 
-          <div class="spell-trap" v-if="['spell','trap'].includes(form.type)">
-            <span>{{ form.language === 'en' ? '[' : '【' }}</span>
+          <div class="spell-trap-link" v-if="['spell','trap'].includes(form.type) && form.icon.startsWith('link-')">
+            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? '[' : '【' }}</span>
+            <CompressText :text="spellTrapLinkName" :fontLoading="fontLoading"></CompressText>
+            <el-image class="spell-trap-icon" v-if="['link-filed', 'link-quick-play', 'link-equip', 'link-continuous', 'link-ritual', 'link-counter'].includes(form.icon)" :src="baseImage(`/icon-${form.icon.replace('link-', '')}.png`)"></el-image>
+            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? ']' : '】' }}</span>
+          </div>
+
+          <div class="spell-trap" v-if="['spell','trap'].includes(form.type) && !form.icon.startsWith('link-')">
+            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? '[' : '【' }}</span>
             <CompressText :text="spellTrapName" :fontLoading="fontLoading"></CompressText>
-            <el-image class="spell-trap-icon" v-if="form.icon" :src="baseImage(`/icon-${form.icon}.png`)"></el-image>
-            <span>{{ form.language === 'en' ? ']' : '】' }}</span>
+            <el-image class="spell-trap-icon" v-if="['filed', 'quick-play', 'equip', 'continuous', 'ritual', 'counter'].includes(form.icon)" :src="baseImage(`/icon-${form.icon}.png`)"></el-image>
+            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? ']' : '】' }}</span>
           </div>
 
           <div class="card-image" v-if="form.image" :style="imageStyle">
@@ -69,7 +76,7 @@
             <span>{{ form.package }}</span>
           </div>
 
-          <div class="link-arrow" v-if="form.type==='monster'&&form.cardType==='link'">
+          <div class="link-arrow" v-if="(form.type==='monster'&&form.cardType==='link') || ((form.type === 'spell' || form.type === 'trap') && form.icon.startsWith('link-'))">
             <el-image :src="baseImage('/arrow-up-on.png')" style="top: 293px;left: 569px" v-show="form.arrowList.includes(1)"></el-image>
             <el-image :src="baseImage('/arrow-right-up-on.png')" style="top: 313px;left: 1141px" v-show="form.arrowList.includes(2)"></el-image>
             <el-image :src="baseImage('/arrow-right-on.png')" style="top: 774px;left: 1221px" v-show="form.arrowList.includes(3)"></el-image>
@@ -97,14 +104,13 @@
             <el-image :src="baseImage('/arrow-p-left-down.png')" style="top: 1180px;left: 80px" v-show="form.arrowList.includes(6)"></el-image>
             <el-image :src="baseImage('/arrow-p-right-up.png')" style="top: 350px;left: 1186px" v-show="form.arrowList.includes(2)"></el-image>
             <el-image :src="baseImage('/arrow-p-right-down.png')" style="top: 1180px;left: 1186px" v-show="form.arrowList.includes(4)"></el-image>
-
           </div>
 
           <div class="card-description" v-card-description>
             <div v-if="['monster','pendulum'].includes(form.type)" class="card-effect">
-              <span>{{ form.language === 'en' ? '[' : '【' }}</span>
+              <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? '[' : '【' }}</span>
               <CompressText :text="form.monsterType" :fontLoading="fontLoading"></CompressText>
-              <span>{{ form.language === 'en' ? ']' : '】' }}</span>
+              <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? ']' : '】' }}</span>
             </div>
 
             <div class="description-info" :style="descriptionStyle">
@@ -267,6 +273,7 @@
                 <el-option label="日文" value="jp"></el-option>
                 <el-option label="英文" value="en"></el-option>
                 <el-option label="星光体" value="as"></el-option>
+                <el-option label="奥利哈钢" value="or"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="卡名">
@@ -303,6 +310,13 @@
                 <el-option label="仪式" value="ritual"></el-option>
                 <el-option label="永续" value="continuous"></el-option>
                 <el-option label="反击" value="counter"></el-option>
+                <el-option label="连接／通常" value="link-normal"></el-option>
+                <el-option label="连接／装备" value="link-equip"></el-option>
+                <el-option label="连接／场地" value="link-filed"></el-option>
+                <el-option label="连接／速攻" value="link-quick-play"></el-option>
+                <el-option label="连接／仪式" value="link-ritual"></el-option>
+                <el-option label="连接／永续" value="link-continuous"></el-option>
+                <el-option label="连接／反击" value="link-counter"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="图片">
@@ -369,7 +383,7 @@
               <el-input-number v-model="form.def" :min="-2" :max="999999" :precision="0"></el-input-number>
               <span class="tip">（? 输入 -1）（∞ 输入 -2）</span>
             </el-form-item>
-            <el-form-item label="箭头" v-if="(form.type==='monster'&& form.cardType==='link') || (form.type === 'pendulum' && form.pendulumType === 'link-pendulum')">
+            <el-form-item label="箭头" v-if="(form.type==='monster'&& form.cardType==='link') || (form.type === 'pendulum' && form.pendulumType === 'link-pendulum') || ((form.type === 'spell' || form.type === 'trap') && form.icon.startsWith('link-'))">
               <div class="arrow-form">
                 <div class="arrow-item" v-for="item in [8,1,2,7,9,3,6,5,4]" @click="toggleArrow(item)" :style="arrowItemStyle(item)">
                   <i class="fas fa-arrow-alt-up" v-if="item===1"></i>
@@ -490,6 +504,7 @@ import tcDemo from './tc/tc-demo';
 import jpDemo from './jp/jp-demo';
 import enDemo from './en/en-demo';
 import asDemo from './as/as-demo';
+import orDemo from './or/or-demo';
 import AboutDialog from '@/components/dialog/AboutDialog';
 import ydk from "@/assets/js/ydk";
 
@@ -590,6 +605,8 @@ export default {
         Object.assign(this.form, enDemo);
       } else if (value === 'as') {
         Object.assign(this.form, asDemo);
+      } else if (value === 'or') {
+        Object.assign(this.form, orDemo);
       }
       this.refreshFont();
     },
@@ -833,6 +850,27 @@ export default {
         } else if (this.form.type === 'trap') {
           name = 'Trap Card';
         }
+      } else if (this.form.language === 'or') {
+        if (this.form.type === 'spell') {
+          name = 'fundsthc';
+        } else if (this.form.type === 'trap') {
+          name = 'fundgrun';
+        }
+      }
+      return name;
+    },
+    spellTrapLinkName() {
+      let name = '';
+      if (this.form.language === 'sc') {
+        name = '链接';
+      } else if (this.form.language === 'tc') {
+        name = '鏈接';
+      } else if (this.form.language === 'jp' || this.form.language === 'as') {
+        name = 'リンク';
+      } else if (this.form.language === 'en') {
+        name = 'Link';
+      } else if (this.form.language === 'or') {
+        name = 'LINK';
       }
       return name;
     },
@@ -938,6 +976,9 @@ export default {
       } else if (this.form.type === 'monster' && this.form.cardType === 'link') {
         top = '1455px';
         right = '252px';
+      } else if ((this.form.type === 'spell' || this.form.type === 'trap') && this.form.icon.startsWith('link-')) {
+        top = '1455px';
+        right = '252px';
       } else {
         top = '1455px';
         right = '148px';
@@ -1027,6 +1068,7 @@ export default {
 @import "./jp/jp";
 @import "./en/en";
 @import "./as/as";
+@import "./or/or";
 
 .yugioh-container {
 
@@ -1077,6 +1119,24 @@ export default {
 
       .el-image {
         margin-right: 3px;
+      }
+    }
+
+    .spell-trap-link {
+      position: absolute;
+      display: flex;
+      align-items: center;
+
+      ::v-deep(.ruby) {
+        .rt {
+          font-size: 18px;
+          top: -2px;
+        }
+      }
+
+      .el-image {
+        display: flex;
+        min-width: 72px;
       }
     }
 
