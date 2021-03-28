@@ -120,7 +120,10 @@ export default {
     },
     translate() {
       if (this.form.text.trim() === '') return;
-      ipcRenderer.send('translate', {text: this.form.text});
+      try {
+        ipcRenderer.send('translate', {text: this.form.text});
+      } catch (e) {
+      }
     }
   }
 }

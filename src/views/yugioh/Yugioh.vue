@@ -38,7 +38,7 @@
           </div>
 
           <div class="card-image" v-if="form.image" :style="imageStyle">
-            <el-image :src="form.image">
+            <el-image :src="form.image" :lazy="true">
               <template #placeholder>
                 <div class="image-slot">
                   <i class="fal fa-spinner fa-pulse"></i>
@@ -206,22 +206,32 @@
         <div class="form-ydk">
           <el-form ref="form" label-width="auto" size="small">
             <el-form-item label="YDK">
-              <el-row :gutter="0">
-                <el-col :span="16">
+              <el-row :gutter="10">
+                <el-col :span="8">
                   <el-upload action="/" :show-file-list="false" accept="application/text" :before-upload="importYDK">
-                    <el-button type="success" style="width: 100%">导入 YDK</el-button>
+                    <el-button type="success">导入 YDK</el-button>
                   </el-upload>
+                </el-col>
+                <el-col :span="8">
+                  <el-button type="success" @click="batchExportImage" :disabled="batchExporting">批量导出</el-button>
+                </el-col>
+                <el-col :span="8">
+                  <el-button type="danger" @click="stopBatchExportImage" :disabled="!batchExporting">停止导出</el-button>
                 </el-col>
               </el-row>
             </el-form-item>
             <el-form-item label-width="0px">
               <el-virtual-list-item v-for="(item) in ydkData">
                 <div style=" width: 100%; height: 40px; line-height: 40px; border-bottom: 1px solid lightgray">
-                  <div style="float: left; width: 220px; height: 40px;">
-                    <CompressText :text="item.name" :width="220" :height="40"></CompressText>
+                  <div style="float: left; width: 10px"><span><b>{{ item.count }}</b></span></div>
+                  <div style="float: left; width: 250px; height: 40px;">
+                    <CompressText :text="item.name" :width="250" :height="40"></CompressText>
                   </div>
                   <div style="float: right; width: 32px; height: 40px;">
-                    <el-button type="warning" style="float: right; width: 32px; height: 32px; margin-top: 4px; padding: 0" @click.stop="showYdkCard(item.id);">显示</el-button>
+                    <el-button type="warning" v-if="!batchExporting" style="float: right; width: 32px; height: 32px; margin-top: 4px; padding: 0" @click.stop="showYdkCard(item.id);">显示</el-button>
+                  </div>
+                  <div style="float: right; margin-right: -32px; width: 40px; height: 40px; line-height: 40px; font-size: 12px; color: darkgray;" v-if="batchExporting && item.exported">
+                    <span>已导出</span>
                   </div>
                 </div>
               </el-virtual-list-item>
@@ -277,7 +287,15 @@
               </el-select>
             </el-form-item>
             <el-form-item label="卡名">
-              <el-autocomplete v-model="form.name" :fetch-suggestions="fetchCardName" placeholder="请输入卡名" @select="selectCardName"></el-autocomplete>
+              <el-row :gutter="10">
+                <el-col :span="18">
+                  <el-autocomplete v-model="form.name" :fetch-suggestions="fetchCardName" placeholder="请输入卡名" @select="selectCardName"></el-autocomplete>
+                </el-col>
+                <el-col :span="6">
+                  <el-button type="primary" @click="remoteKana">远程注音</el-button>
+                </el-col>
+              </el-row>
+
             </el-form-item>
             <el-form-item label="颜色">
               <el-color-picker v-model="form.color"></el-color-picker>
@@ -562,11 +580,51 @@ export default {
       kanjiKanaDialog: false,
       raceDialog: false,
       effectDialog: false,
-      ydkData: [],       // 读入 YDK 时填充
-      printMode: false  // 打印模式，将使用另一套卡模
+      ydkData: [],           // 读入 YDK 时填充
+      printMode: false,      // 打印模式，将使用另一套卡模
+      batchExporting: false,  // 正在批量导出
+      exportDirectory: ''    // 要导出的文件所在的目录
     };
   },
   created() {
+    try {
+      ipcRenderer.on('choose-directory-reply', (event, args) => {
+        this.exportDirectory = args.path;
+        console.log('exportDirectory = ' + this.exportDirectory);
+        if (this.exportDirectory === '') {
+          // 如果返回的路径是空的，说明导出被取消
+          this.batchExporting = false;
+          return;
+        }
+        // 开始导出
+        this.exportNextImage();
+      });
+    } catch (err) {
+
+    }
+    try {
+      ipcRenderer.on('export-image-reply', (event, args) => {
+        let id = args.id;
+        for (let i = 0; i < this.ydkData.length; i++) {
+          if (parseInt(this.ydkData[i].id) === parseInt(id) && !this.ydkData[i].exported) {
+            // 一次只设置一张，会有多张导出的情况
+            this.ydkData[i].exported = true;
+            break;
+          }
+        }
+        // 接到上一张图片导出完毕的消息，导出下一张图
+        this.exportNextImage();
+      });
+    } catch (err) {
+
+    }
+    try {
+      ipcRenderer.on('remote-kana-reply', (event, args) => {
+        this.form.name = args.kanaName;
+      });
+    } catch (e) {
+
+    }
     Object.assign(this.form, jpDemo);
   },
   mounted() {
@@ -575,6 +633,14 @@ export default {
     });
   },
   methods: {
+    remoteKana() {
+      // 从远程服务器请求注音
+      try {
+        ipcRenderer.send('remote-kana', {name: this.cardName});
+      } catch (e) {
+
+      }
+    },
     baseImage(path) {
       return require('@/assets/image' + path);
     },
@@ -667,9 +733,6 @@ export default {
       } else {
         this.lastDescriptionHeight = 0;
       }
-      // if (this.lastDescriptionHeight <= 40) {
-      //     this.$message.warning('文本超过可压缩高度');
-      // }
     },
     fetchCardName(value, callback) {
       if (value) {
@@ -779,6 +842,40 @@ export default {
       }).finally(() => {
         this.exportLoading = false;
       });
+    },
+    batchExportImage() {
+      this.batchExporting = true;
+      try {
+        // 批量导出前，选择保存目录
+        ipcRenderer.send('choose-directory', {});
+      } catch (e) {
+      }
+    },
+    stopBatchExportImage() {
+      this.batchExporting = false;
+    },
+    exportNextImage() {
+      if (!this.batchExporting) return;
+      if (this.batchExporting) {
+        // 是否要继续导出，导出是可以终止的
+        let allExported = true;
+        let exportId = '';
+        for (let i = 0; i < this.ydkData.length; i++) {
+          if (!this.ydkData[i].exported) {
+            allExported = false;
+            exportId = this.ydkData[i].id;
+            break;
+          }
+        }
+        if (!allExported) {
+          // 加载下一张图
+          this.form.password = exportId;
+          this.searchCardByPassword();
+        } else {
+          // 全部导完了
+          this.batchExporting = false;
+        }
+      }
     }
   },
   computed: {
@@ -1045,7 +1142,35 @@ export default {
           aspectRatio: 1,
           crossOrigin: 'Anonymous'
         }).then(data => {
+          console.log('export: ' + this.form.password);
           this.form.image = data.image.toDataURL('image/png', 1);
+          let count = 1;
+          for (let i = 0; i < this.ydkData.length; i++) {
+            if (parseInt(this.ydkData[i].id) === parseInt(this.form.password)) {
+              count = this.ydkData[i].count;
+              break;
+            }
+          }
+          setTimeout(() => {
+            if (this.batchExporting) {
+              // 如果正在批量导出，就导出卡图
+              let element = document.querySelector('.yugioh-card');
+              html2canvas(element, {
+                useCORS: true,
+                backgroundColor: 'transparent',
+                width: this.form.scale * 1393,
+                height: this.form.scale * 2031,
+              }).then(canvas => {
+                let dataURL = canvas.toDataURL('image/png', 1);
+                try {
+                  ipcRenderer.send('export-image', {path: this.exportDirectory, name: this.cardName, b64: dataURL, id: this.form.password, count: count});
+                } catch (e) {
+                }
+              }).finally(() => {
+                this.exportLoading = false;
+              });
+            }
+          }, 3000);
         });
       }
     },
