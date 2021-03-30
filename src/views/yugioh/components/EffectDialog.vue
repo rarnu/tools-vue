@@ -50,6 +50,7 @@
 
       <template #footer>
         <el-button plain size="medium" @click="closeDialog">关闭</el-button>
+        <el-button type="primary" size="medium" @click="remoteAddKana">远程注音</el-button>
       </template>
     </el-dialog>
   </div>
@@ -94,12 +95,26 @@ export default {
     } catch (err) {
 
     }
+    try {
+      ipcRenderer.on('remote-effect-kana-reply', (event, args) => {
+        this.form.textjp = args.text;
+      });
+    } catch (e) {
+
+    }
   },
   mounted() {
     this.effectKeys = Object.keys(effectList);
     this.firstLineTypes = Object.keys(cardTypeList);
   },
   methods: {
+    remoteAddKana() {
+      try {
+        ipcRenderer.send('remote-effect-kana', {text: this.form.textjp});
+      } catch (e) {
+
+      }
+    },
     writeEffect() {
       const text = effectList[this.form.effectKey][this.form.effectjp];
       this.form.textjp += text;

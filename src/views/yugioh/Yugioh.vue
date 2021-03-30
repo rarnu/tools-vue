@@ -619,7 +619,7 @@ export default {
     }
     try {
       ipcRenderer.on('remote-kana-reply', (event, args) => {
-        this.form.name = args.kanaName;
+        this.form.name = args.text;
       });
     } catch (e) {
 
@@ -635,7 +635,7 @@ export default {
     remoteKana() {
       // 从远程服务器请求注音
       try {
-        ipcRenderer.send('remote-kana', {name: this.cardName});
+        ipcRenderer.send('remote-kana', {text: this.cardName});
       } catch (e) {
 
       }
@@ -1133,7 +1133,6 @@ export default {
   },
   watch: {
     'form.package'() {
-      // TODO: 卡包变动
       console.log('package: ' + this.form.package);
       if (this.form.language === 'jp') {
         this.form.package = this.form.package.replace('-EN', '-JP').replace('-SC', '-JP').replace('-TC', '-JP');

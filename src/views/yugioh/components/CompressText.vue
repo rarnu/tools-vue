@@ -1,9 +1,8 @@
 <template>
     <span v-compress-text="compressParams">
         <template v-for="item in textList">
-            <span v-if="(typeof item === 'object') && !'①②③④⑤⑥⑦⑧⑨⑩'.includes(item.ruby)" :class="['ruby', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '', specColor === '4' ? 'blue' : '']">{{ item.ruby }}<span class="rt" v-compress-rt>{{ item.rt }}</span></span>
-            <span v-else-if="(typeof item === 'object') && '①②③④⑤⑥⑦⑧⑨⑩'.includes(item.ruby)" :class="['ruby', 'unscaled', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '', specColor === '4' ? 'blue' : '']" :style="circleScale">{{ item.ruby }}</span>
-            <span v-else :class="['ruby', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '', specColor === '4' ? 'blue' : '']">{{ item }}</span>
+            <span v-if="typeof item === 'object'" :class="['ruby', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '', specColor === '4' ? 'blue' : '']">{{ item.ruby }}<span class="rt" v-compress-rt>{{ item.rt }}</span></span>
+            <span v-else :class="['ruby', specColor === '1' ? 'red' : '', specColor === '2' ? 'gold' : '', specColor === '3' ? 'silver': '', specColor === '4' ? 'blue' : '']" :style="noCompress.includes(item) ? noCompressStyle : ''">{{ item }}</span>
         </template>
     </span>
 </template>
@@ -14,6 +13,7 @@ export default {
   props: ['text', 'width', 'height', 'language', 'fontLoading', 'autoSizeElement', 'specColor'],
   data() {
     return {
+      noCompress: '●①②③④⑤⑥⑦⑧⑨⑩',
       textScale: 1.0
     }
   },
@@ -29,7 +29,7 @@ export default {
     },
     textList() {
       let rep = this.language === 'sc' ? this.text.replace(/-/g, '－') : this.text;
-      return rep.replace(/[①②③④⑤⑥⑦⑧⑨⑩]/g, s => `[${s}()]`).replace(/\[.*?\(.*?\)]/g, s => `|${s}|`).split('|').filter(value => value).map(value => {
+      return rep.replace(new RegExp(`\\[(.*?)\\((.*?)\\)]|[${this.noCompress}]`, 'g'), s => `|${s}|`).split('|').filter(value => value).map(value => {
         if (/\[.*?\(.*?\)]/g.test(value)) {
           return {
             ruby: value.replace(/\[(.*?)\((.*?)\)]/g, '$1'),
@@ -39,14 +39,11 @@ export default {
         return value;
       });
     },
-    circleScale() {
-      let cirScale = 1 / this.textScale;
-      let m = (cirScale - 1) / 0.05;
-      let pd = ~~(2 + m) + 'px';
+    noCompressStyle() {
       return {
-        transform: `scaleX(${cirScale})`,
-        paddingLeft: pd,
-        paddingRight: pd
+        display: 'inline-block',
+        transform: `scaleX(${1 / this.textScale})`,
+        padding: `0 ${(1 - this.textScale) * 36}px`
       };
     }
   },
@@ -93,7 +90,7 @@ export default {
     },
     // 压缩文本文字
     compressText(el, binding) {
-      let _this = binding.instance;
+      let that = binding.instance;
       let params = binding.value;
       if (params.width && params.height) {
         el.style.display = 'inline-block';
@@ -131,8 +128,9 @@ export default {
               }
             }
           }
-          // 把最终的缩放值写入变量，以便在 circleScale 进行计算
-          _this.textScale = scale;
+          that.textScale = scale;
+        } else {
+          that.textScale = 1.0;
         }
       }
     }
@@ -163,10 +161,6 @@ export default {
       width: 90%;
     }
   }
-}
-
-.unscaled {
-  display: inline-block;
 }
 
 .red {
