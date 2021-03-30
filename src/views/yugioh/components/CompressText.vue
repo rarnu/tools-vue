@@ -28,7 +28,8 @@ export default {
       };
     },
     textList() {
-      return this.text.replace(/[①②③④⑤⑥⑦⑧⑨⑩]/g, s => `[${s}()]`).replace(/\[.*?\(.*?\)]/g, s => `|${s}|`).split('|').filter(value => value).map(value => {
+      let rep = this.language === 'sc' ? this.text.replace(/-/g, '－') : this.text;
+      return rep.replace(/[①②③④⑤⑥⑦⑧⑨⑩]/g, s => `[${s}()]`).replace(/\[.*?\(.*?\)]/g, s => `|${s}|`).split('|').filter(value => value).map(value => {
         if (/\[.*?\(.*?\)]/g.test(value)) {
           return {
             ruby: value.replace(/\[(.*?)\((.*?)\)]/g, '$1'),

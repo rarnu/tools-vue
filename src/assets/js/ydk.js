@@ -9,7 +9,6 @@ export default {
             result.forEach(e => {
                 arr.push({id: `${e.data.data.id}`, name: e.data.data.name, exported: false, count: this.getCardCount(list, `${e.data.data.id}`)});
             });
-            console.log(arr);
             callback(arr);
         }));
     },

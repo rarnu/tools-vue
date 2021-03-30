@@ -5,7 +5,7 @@
         <div class="yugioh-card" :class="cardClass" :style="cardStyle" ondragstart="return false">
 
           <div class="card-name" v-name-color="form.color">
-            <CompressText :text="form.name" :fontLoading="fontLoading" :width="1030" :height="200" :specColor="form.redName"></CompressText>
+            <CompressText :text="form.name" :fontLoading="fontLoading" :width="1030" :height="200" :specColor="form.redName" :language="form.language"></CompressText>
           </div>
           <div class="card-attribute">
             <el-image :src="attributeSrc"></el-image>
@@ -590,7 +590,6 @@ export default {
     try {
       ipcRenderer.on('choose-directory-reply', (event, args) => {
         this.exportDirectory = args.path;
-        console.log('exportDirectory = ' + this.exportDirectory);
         if (this.exportDirectory === '') {
           // 如果返回的路径是空的，说明导出被取消
           this.batchExporting = false;
@@ -1133,6 +1132,19 @@ export default {
     }
   },
   watch: {
+    'form.package'() {
+      // TODO: 卡包变动
+      console.log('package: ' + this.form.package);
+      if (this.form.language === 'jp') {
+        this.form.package = this.form.package.replace('-EN', '-JP').replace('-SC', '-JP').replace('-TC', '-JP');
+      } else if (this.form.language === 'sc') {
+        this.form.package = this.form.package.replace('-EN', '-SC').replace('-JP', '-SC').replace('-TC', '-SC');
+      } else if (this.form.language === 'tc') {
+        this.form.package = this.form.package.replace('-EN', '-TC').replace('-SC', '-TC').replace('-JP', '-TC');
+      } else if (this.form.language === 'en') {
+        this.form.package = this.form.package.replace('-JP', '-EN').replace('-SC', '-EN').replace('-TC', '-EN');
+      }
+    },
     // 图片转base64
     'form.image'() {
       if (this.form.image && !this.form.image.startsWith('data:image')) {
@@ -1142,7 +1154,6 @@ export default {
           aspectRatio: 1,
           crossOrigin: 'Anonymous'
         }).then(data => {
-          console.log('export: ' + this.form.password);
           this.form.image = data.image.toDataURL('image/png', 1);
           let count = 1;
           for (let i = 0; i < this.ydkData.length; i++) {
