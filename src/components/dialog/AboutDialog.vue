@@ -1,6 +1,6 @@
 <template>
   <div class="about-dialog-container">
-    <el-dialog title="关于游戏王卡片制作器 3.0.3" :modelValue="modelValue" width="500px" :before-close="closeDialog">
+    <el-dialog title="关于游戏王卡片制作器 3.1.0" :modelValue="modelValue" width="500px" :before-close="closeDialog">
       <div class="about-main">
         <p>本软件遵从 MIT 开源协议</p>
         <p>开源地址:</p>

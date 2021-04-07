@@ -200,6 +200,7 @@
           </div>
 
         </div>
+
       </template>
 
       <template #ydk>
@@ -221,7 +222,7 @@
               </el-row>
             </el-form-item>
             <el-form-item label-width="0px">
-              <el-virtual-list-item v-for="(item) in ydkData">
+              <div v-for="(item) in ydkData">
                 <div style=" width: 100%; height: 40px; line-height: 40px; border-bottom: 1px solid lightgray">
                   <div style="float: left; width: 10px"><span><b>{{ item.count }}</b></span></div>
                   <div style="float: left; width: 250px; height: 40px;">
@@ -234,7 +235,7 @@
                     <span>已导出</span>
                   </div>
                 </div>
-              </el-virtual-list-item>
+              </div>
             </el-form-item>
           </el-form>
         </div>
@@ -287,15 +288,20 @@
               </el-select>
             </el-form-item>
             <el-form-item label="卡名">
+              <el-autocomplete v-model="form.name" :fetch-suggestions="fetchCardName" placeholder="请输入卡名" @select="selectCardName"></el-autocomplete>
+            </el-form-item>
+            <el-form-item label="注音">
               <el-row :gutter="10">
-                <el-col :span="18">
-                  <el-autocomplete v-model="form.name" :fetch-suggestions="fetchCardName" placeholder="请输入卡名" @select="selectCardName"></el-autocomplete>
+                <el-col :span="6">
+                  <el-button type="primary" :disabled="form.language !== 'jp'" style="width: 100%" @click="remoteKana">远程注音</el-button>
                 </el-col>
                 <el-col :span="6">
-                  <el-button type="primary" @click="remoteKana">远程注音</el-button>
+                  <el-button type="success" :disabled="form.language !== 'jp'" style="width: 100%" @click="aiLocalKana">AI注音</el-button>
+                </el-col>
+                <el-col :span="12">
+                  <el-switch v-model="byWord" active-text="按词" inactive-text="按字"></el-switch>
                 </el-col>
               </el-row>
-
             </el-form-item>
             <el-form-item label="颜色">
               <el-color-picker v-model="form.color"></el-color-picker>
@@ -426,6 +432,7 @@
               <div style="display: flex">
                 <el-input v-model="form.password" placeholder="请输入密码"></el-input>
                 <el-button style="margin-left: 10px" type="primary" :loading="searchLoading" @click="searchCardByPassword">搜索</el-button>
+                <el-button type="primary" @click="randomPassword">随机</el-button>
               </div>
             </el-form-item>
             <el-form-item label="版权">
@@ -525,6 +532,7 @@ import asDemo from './as/as-demo';
 import orDemo from './or/or-demo';
 import AboutDialog from '@/components/dialog/AboutDialog';
 import ydk from "@/assets/js/ydk";
+import sc2tc from "@/assets/js/sc2tc";
 
 export default {
 
@@ -582,7 +590,8 @@ export default {
       effectDialog: false,
       ydkData: [],           // 读入 YDK 时填充
       printMode: false,      // 打印模式，将使用另一套卡模
-      batchExporting: false,  // 正在批量导出
+      byWord: true,          // 按词注音（为否的时候是按字注音）
+      batchExporting: false, // 正在批量导出
       exportDirectory: ''    // 要导出的文件所在的目录
     };
   },
@@ -638,6 +647,35 @@ export default {
         ipcRenderer.send('remote-kana', {text: this.cardName});
       } catch (e) {
 
+      }
+    },
+    async aiLocalKana() {
+      if (this.byWord) {
+        // 按词注音
+        let tmpName = this.form.name;
+        let noKanaStr = tmpName.replace(/\[.*?\(.*?\)]/g, ' ').replace(/\s+/g, ' ');
+        const result = await this.kuroshiro.convert(noKanaStr, {mode: "furigana", to: "hiragana"});
+        let s2 = result.replace(/\<rp\>/g, '').replace(/\<\/rp\>/g, '').replace(/\<rt\>/g, '').replace(/\<\/rt\>/g, '').replace(/\<ruby\>/g, '[').replace(/\<\/ruby\>/g, ']');
+        let arr = Array.from(new Set(s2.match(/\[.*?\(.*?\)\]/g)));
+        for (let i = 0; i < arr.length; i++) {
+          let wordName = arr[i].slice(1, arr[i].indexOf('('));
+          tmpName = tmpName.replace(eval(`/${wordName}/g`), arr[i]);
+        }
+        this.form.name = tmpName;
+      } else {
+        // 按字注音
+        let tmpName = this.form.name;
+        let noKanaStr = tmpName.replace(/\[.*?\(.*?\)]/g, '').replace(/\s+/g, '');
+        let arr = Array.from(new Set(noKanaStr.split('')));
+        for (let i = 0; i < arr.length; i++) {
+          let k = this.kUtil.isKanji(arr[i]);
+          if (k) {
+            let r = await this.kuroshiro.convert(arr[i], {mode: "furigana", to: "hiragana"});
+            let s2 = r.replace(/\<rp\>/g, '').replace(/\<\/rp\>/g, '').replace(/\<rt\>/g, '').replace(/\<\/rt\>/g, '').replace(/\<ruby\>/g, '[').replace(/\<\/ruby\>/g, ']');
+            tmpName = tmpName.replace(eval(`/${arr[i]}/g`), s2);
+          }
+        }
+        this.form.name = tmpName;
       }
     },
     baseImage(path) {
@@ -757,20 +795,50 @@ export default {
       this.form.password = value.id;
       this.searchCardByPassword();
     },
+    parseData(data) {
+      let cardInfo = this.parseYugiohCard(data, this.form.language);
+      Object.assign(this.form, cardInfo);
+    },
     searchCardByPassword() {
       this.searchLoading = true;
-      this.axios({
-        method: 'get',
-        url: '/yugioh/card/' + this.form.password,
-        params: {
-          lang: this.form.language
-        }
-      }).then(res => {
-        let cardInfo = this.parseYugiohCard(res.data.data, this.form.language);
-        Object.assign(this.form, cardInfo);
-      }).finally(() => {
-        this.searchLoading = false;
-      });
+      if (this.form.language === 'tc') {
+        this.axios.get(`/yugioh/card/${this.form.password}?lang=tc`)
+            .then(res => {
+              this.parseData(res.data.data);
+            })
+            .catch(res => {
+              // 繁中取不到的情况，取简中来翻译
+              this.axios.get(`/yugioh/card/${this.form.password}?lang=sc`)
+                  .then(res1 => {
+                    let resConv = {};
+                    Object.assign(resConv, res1.data.data);
+                    resConv.name = sc2tc.simple2Traditional(res1.data.data.name);
+                    resConv.desc = sc2tc.simple2Traditional(res1.data.data.desc);
+                    this.parseData(resConv);
+                  });
+            }).finally(() => {
+          this.searchLoading = false;
+        });
+      } else {
+        this.axios({
+          method: 'get',
+          url: '/yugioh/card/' + this.form.password,
+          params: {
+            lang: this.form.language
+          }
+        }).then(res => {
+          this.parseData(res.data.data);
+        }).finally(() => {
+          this.searchLoading = false;
+        });
+      }
+    },
+    randomPassword() {
+      let rand = '';
+      for (let i = 0; i < 8; i++) {
+        rand += Math.floor(Math.random() * 10);
+      }
+      this.form.password = rand;
     },
     getRandomCard() {
       this.randomLoading = true;
@@ -1133,7 +1201,6 @@ export default {
   },
   watch: {
     'form.package'() {
-      console.log('package: ' + this.form.package);
       if (this.form.language === 'jp') {
         this.form.package = this.form.package.replace('-EN', '-JP').replace('-SC', '-JP').replace('-TC', '-JP');
       } else if (this.form.language === 'sc') {

@@ -19,10 +19,12 @@ axios.interceptors.response.use(response => {
 }, error => {
     // 对响应错误做点什么
     let message = error.response?.data?.message ?? error.message;
-    ElNotification.error({
-        title: '错误',
-        message: message
-    });
+    if (message !== '数据不存在') {
+        ElNotification.error({
+            title: '错误',
+            message: message
+        });
+    }
     return Promise.reject(error);
 });
 

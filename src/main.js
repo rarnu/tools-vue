@@ -13,11 +13,17 @@ import base from '@/plugins/base';
 import yugiohPlugin from '@/plugins/yugioh-plugin';
 import './assets/font/ygo-font.css';
 import './assets/css/all.css';
+import Kuroshiro from "kuroshiro";
+import KuromojiAnalyzer from "kuroshiro-analyzer-kuromoji";
 
 const app = createApp(App);
 
 app.config.globalProperties.axios = axios;
 app.config.globalProperties.dayjs = dayjs;
+const kuroshiro = new Kuroshiro();
+kuroshiro.init(new KuromojiAnalyzer({dictPath: './dict'}));
+app.config.globalProperties.kuroshiro = kuroshiro;
+app.config.globalProperties.kUtil = Kuroshiro.Util;
 
 app.use(ElementPlus, {locale});
 app.use(base);
