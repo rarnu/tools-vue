@@ -16,6 +16,5 @@ export default {
     password: '89631139',
     copyright: 'jp',
     laser: true,
-    radius: true,
-    firstlinecompress: false
+    radius: true
 };

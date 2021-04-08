@@ -636,6 +636,7 @@ export default {
     Object.assign(this.form, jpDemo);
   },
   mounted() {
+    window.assignCardData = this.assignCardData;
     document.fonts.ready.then(() => {
       this.fontLoading = false;
     });
@@ -683,6 +684,9 @@ export default {
     },
     newCard() {
       Object.assign(this.form, jpDemo);
+    },
+    assignCardData(data) {
+      Object.assign(this.form, data);
     },
     getRace(race) {
       // 从 Race 对话框回传过来的
