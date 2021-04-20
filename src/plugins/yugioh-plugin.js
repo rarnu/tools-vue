@@ -6,7 +6,7 @@ const monsterTypeList = require('@/assets/json/monster-type-list.json');
 export default {
     install(app, options) {
         // 解析游戏王卡片
-        app.config.globalProperties.parseYugiohCard = function (data, lang) {
+        app.config.globalProperties.parseYugiohCard = async function (data, lang) {
             let card = {
                 name: parseName(data),
                 type: parseType(data),
@@ -29,7 +29,13 @@ export default {
             };
             if (lang === 'jp') {
                 // 添加注音
-                card.name = vm.kanjiToKana(card.name);
+                let kk = await vm.kanjiKanaAPI(card.name);
+                if (kk) {
+                    card.name = kk;
+                } else {
+                    card.name = vm.kanjiToKana(card.name);
+                }
+                // card.name = vm.kanjiToKana(card.name);
                 card.pendulumDescription = vm.kanjiToKana(card.pendulumDescription);
                 card.monsterType = vm.kanjiToKana(card.monsterType);
                 card.description = vm.kanjiToKana(card.description);
@@ -47,6 +53,21 @@ export default {
                 return value;
             }).join('');
         };
+        // 卡名注音 API
+        app.config.globalProperties.kanjiKanaAPI = async function (text = '') {
+            let json = await vm.axios.post('http://rarnu.xyz:9987/kk/search', {name: text});
+            let d = json.data;
+            if (!d.found) {
+                // 转半角后重试
+                let t = parseName2(text);
+                let json2 = await vm.axios.post('http://rarnu.xyz:9987/kk/search', {name: t});
+                d = json2.data;
+            }
+            if (!d.found) {
+                return null;
+            }
+            return d.kk;
+        }
     }
 };
 
@@ -87,7 +108,15 @@ function numberToHalf(value) {
 }
 
 function parseName(data) {
-    let name = characterToHalf(data.name);
+    return data.name;
+    // let name = characterToHalf(data.name);
+    // 名字的数字要转半角
+    // name = numberToHalf(name);
+    // return name;
+}
+
+function parseName2(str = '') {
+    let name = characterToHalf(str);
     // 名字的数字要转半角
     name = numberToHalf(name);
     return name;

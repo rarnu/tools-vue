@@ -296,7 +296,7 @@
                   <el-button type="primary" :disabled="form.language !== 'jp'" style="width: 100%" @click="remoteKana">远程注音</el-button>
                 </el-col>
                 <el-col :span="6">
-                  <el-button type="success" :disabled="form.language !== 'jp'" style="width: 100%" @click="aiLocalKana">AI注音</el-button>
+                  <el-button type="danger" :disabled="form.language !== 'jp'" style="width: 100%" @click="aiLocalKana">AI注音</el-button>
                 </el-col>
                 <el-col :span="12">
                   <el-switch v-model="byWord" active-text="按词" inactive-text="按字"></el-switch>
@@ -644,11 +644,13 @@ export default {
   methods: {
     remoteKana() {
       // 从远程服务器请求注音
-      try {
-        ipcRenderer.send('remote-kana', {text: this.cardName});
-      } catch (e) {
-
-      }
+      this.kanjiKanaAPI(this.cardName).then(kk => {
+        if (kk) {
+          this.form.name = kk;
+        } else {
+          this.form.name = this.kanjiToKana(this.cardName);
+        }
+      });
     },
     async aiLocalKana() {
       if (this.byWord) {
@@ -799,8 +801,8 @@ export default {
       this.form.password = value.id;
       this.searchCardByPassword();
     },
-    parseData(data) {
-      let cardInfo = this.parseYugiohCard(data, this.form.language);
+    async parseData(data) {
+      let cardInfo = await this.parseYugiohCard(data, this.form.language);
       Object.assign(this.form, cardInfo);
     },
     searchCardByPassword() {
@@ -844,20 +846,18 @@ export default {
       }
       this.form.password = rand;
     },
-    getRandomCard() {
+    async getRandomCard() {
       this.randomLoading = true;
-      this.axios({
+      let res = await this.axios({
         method: 'get',
         url: '/yugioh/random-card',
         params: {
           lang: this.form.language
         }
-      }).then(res => {
-        let cardInfo = this.parseYugiohCard(res.data.data, this.form.language);
-        Object.assign(this.form, cardInfo);
-      }).finally(() => {
-        this.randomLoading = false;
       });
+      let cardInfo = await this.parseYugiohCard(res.data.data, this.form.language);
+      Object.assign(this.form, cardInfo);
+      this.randomLoading = false;
     },
     importJson(file) {
       let reader = new FileReader();
