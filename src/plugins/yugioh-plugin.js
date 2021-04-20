@@ -119,6 +119,8 @@ function parseName2(str = '') {
     let name = characterToHalf(str);
     // 名字的数字要转半角
     name = numberToHalf(name);
+    // 蛋疼，特殊处理下
+    name = name.replaceAll('Ɐ', '∀');
     return name;
 }
 
