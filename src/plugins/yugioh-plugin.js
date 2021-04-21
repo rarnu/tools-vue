@@ -35,6 +35,8 @@ export default {
                 } else {
                     card.name = vm.kanjiToKana(card.name);
                 }
+                // 蛋疼，反过来再处理下
+                card.name = card.name.replaceAll('∀', 'Ɐ').replaceAll('’','´');
                 // card.name = vm.kanjiToKana(card.name);
                 card.pendulumDescription = vm.kanjiToKana(card.pendulumDescription);
                 card.monsterType = vm.kanjiToKana(card.monsterType);
@@ -55,11 +57,13 @@ export default {
         };
         // 卡名注音 API
         app.config.globalProperties.kanjiKanaAPI = async function (text = '') {
+            console.log(text);
             let json = await vm.axios.post('http://rarnu.xyz:9987/kk/search', {name: text});
             let d = json.data;
             if (!d.found) {
                 // 转半角后重试
                 let t = parseName2(text);
+                console.log(t);
                 let json2 = await vm.axios.post('http://rarnu.xyz:9987/kk/search', {name: t});
                 d = json2.data;
             }
@@ -120,7 +124,7 @@ function parseName2(str = '') {
     // 名字的数字要转半角
     name = numberToHalf(name);
     // 蛋疼，特殊处理下
-    name = name.replaceAll('Ɐ', '∀');
+    name = name.replaceAll('Ɐ', '∀').replaceAll('´', '’');
     return name;
 }
 
