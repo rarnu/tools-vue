@@ -29,6 +29,7 @@ export default {
     },
     textList() {
       let rep = this.language === 'sc' ? this.text.replace(/-/g, '－') : this.text;
+      rep = rep.replace('\n', '\n\r');
       return rep.replace(new RegExp(`\\[(.*?)\\((.*?)\\)]|[${this.noCompress}]`, 'g'), s => `|${s}|`).split('|').filter(value => value).map(value => {
         if (/\[.*?\(.*?\)]/g.test(value)) {
           return {
@@ -143,6 +144,7 @@ export default {
 <style lang="scss" scoped>
 .ruby {
   position: relative;
+  //white-space:pre-wrap;
 
   .rt {
     -webkit-text-stroke: 0 transparent;

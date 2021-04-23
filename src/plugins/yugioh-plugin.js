@@ -6,7 +6,7 @@ const monsterTypeList = require('@/assets/json/monster-type-list.json');
 export default {
     install(app, options) {
         // 解析游戏王卡片
-        app.config.globalProperties.parseYugiohCard = async function (data, lang) {
+        app.config.globalProperties.parseYugiohCard = async function (data, lang, kk = true) {
             let card = {
                 name: parseName(data),
                 type: parseType(data),
@@ -27,7 +27,7 @@ export default {
                 package: parsePackage(data),
                 password: parsePassword(data)
             };
-            if (lang === 'jp') {
+            if (lang === 'jp' && kk) {
                 // 添加注音
                 let kk = await vm.kanjiKanaAPI(card.name);
                 if (kk) {
@@ -35,12 +35,25 @@ export default {
                 } else {
                     card.name = vm.kanjiToKana(card.name);
                 }
-                // 蛋疼，反过来再处理下
-                card.name = card.name.replaceAll('∀', 'Ɐ').replaceAll('’','´');
+                // 蛋疼，反过来再处理下(这个已经被服务器处理了)
+                // card.name = card.name.replaceAll('∀', 'Ɐ').replaceAll('’','´');
                 // card.name = vm.kanjiToKana(card.name);
-                card.pendulumDescription = vm.kanjiToKana(card.pendulumDescription);
+                let pekk = await vm.effectKanjiKanaAPI(card.pendulumDescription);
+                if (pekk) {
+                    console.log('pekk: ' + pekk);
+                    card.pendulumDescription = pekk;
+                } else {
+                    card.pendulumDescription = vm.kanjiToKana(card.pendulumDescription)
+                }
+                // card.pendulumDescription = vm.kanjiToKana(card.pendulumDescription);
                 card.monsterType = vm.kanjiToKana(card.monsterType);
-                card.description = vm.kanjiToKana(card.description);
+                let efkk = await vm.effectKanjiKanaAPI(card.description);
+                if (efkk) {
+                    console.log('efkk: ' + efkk);
+                    card.description = efkk;
+                } else {
+                    card.description = vm.kanjiToKana(card.description);
+                }
             }
             return card;
         };
@@ -57,16 +70,17 @@ export default {
         };
         // 卡名注音 API
         app.config.globalProperties.kanjiKanaAPI = async function (text = '') {
-            console.log(text);
             let json = await vm.axios.post('http://rarnu.xyz:9987/kk/search', {name: text});
             let d = json.data;
             if (!d.found) {
-                // 转半角后重试
-                let t = parseName2(text);
-                console.log(t);
-                let json2 = await vm.axios.post('http://rarnu.xyz:9987/kk/search', {name: t});
-                d = json2.data;
+                return null;
             }
+            return d.kk;
+        };
+        // 效果注音
+        app.config.globalProperties.effectKanjiKanaAPI = async function(text = '') {
+            let json = await vm.axios.post('http://rarnu.xyz:9987/kk/effect', {name: text});
+            let d = json.data;
             if (!d.found) {
                 return null;
             }
@@ -434,7 +448,11 @@ function parseDescription(data) {
             });
             description = charList.join('');
         } else {
-            description = description.replace(/\n/g, '');
+            if (description.indexOf('●') === -1) {
+                description = description.replace(/\n/g, '');
+            } else {
+                // 如果有点符号，不去除换行
+            }
         }
     }
     return description;

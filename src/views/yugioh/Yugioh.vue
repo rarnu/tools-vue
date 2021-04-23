@@ -114,7 +114,7 @@
             </div>
 
             <div class="description-info" :style="descriptionStyle">
-              <!-- 只有一行的情况，无论如何都压缩 -->
+              <!-- 只有一行的情况，无论如何都全文本压缩 -->
               <div v-if="form.description.split('\n').length === 1">
                 <CompressText :text="form.description" :width="1170" :height="300" :fontLoading="fontLoading"
                               :language="form.language" autoSizeElement=".card-description"></CompressText>
@@ -293,13 +293,10 @@
             <el-form-item label="注音">
               <el-row :gutter="10">
                 <el-col :span="6">
-                  <el-button type="primary" :disabled="form.language !== 'jp'" style="width: 100%" @click="remoteKana">远程注音</el-button>
-                </el-col>
-                <el-col :span="6">
-                  <el-button type="danger" :disabled="form.language !== 'jp'" style="width: 100%" @click="aiLocalKana">AI注音</el-button>
+                  <el-button type="primary" :disabled="form.language !== 'jp' || !useKK" style="width: 100%" @click="remoteKana">远程注音</el-button>
                 </el-col>
                 <el-col :span="12">
-                  <el-switch v-model="byWord" active-text="按词" inactive-text="按字"></el-switch>
+                  <el-switch v-model="useKK" :disabled="form.language !== 'jp'" active-text="启用注音"></el-switch>
                 </el-col>
               </el-row>
             </el-form-item>
@@ -530,6 +527,7 @@ import jpDemo from './jp/jp-demo';
 import enDemo from './en/en-demo';
 import asDemo from './as/as-demo';
 import orDemo from './or/or-demo';
+import jpDataDemo from './jp/jp-data-demo';
 import AboutDialog from '@/components/dialog/AboutDialog';
 import ydk from "@/assets/js/ydk";
 import sc2tc from "@/assets/js/sc2tc";
@@ -552,6 +550,8 @@ export default {
       searchLoading: false,
       randomLoading: false,
       exportLoading: false,
+      useKK: true,
+      currentCardData: {},
       form: {
         language: 'jp',
         name: '',
@@ -590,7 +590,6 @@ export default {
       effectDialog: false,
       ydkData: [],           // 读入 YDK 时填充
       printMode: false,      // 打印模式，将使用另一套卡模
-      byWord: true,          // 按词注音（为否的时候是按字注音）
       batchExporting: false, // 正在批量导出
       exportDirectory: ''    // 要导出的文件所在的目录
     };
@@ -633,6 +632,7 @@ export default {
     } catch (e) {
 
     }
+    Object.assign(this.currentCardData, jpDataDemo);
     Object.assign(this.form, jpDemo);
   },
   mounted() {
@@ -651,35 +651,20 @@ export default {
           this.form.name = this.kanjiToKana(this.cardName);
         }
       });
-    },
-    async aiLocalKana() {
-      if (this.byWord) {
-        // 按词注音
-        let tmpName = this.form.name;
-        let noKanaStr = tmpName.replace(/\[.*?\(.*?\)]/g, ' ').replace(/\s+/g, ' ');
-        const result = await this.kuroshiro.convert(noKanaStr, {mode: "furigana", to: "hiragana"});
-        let s2 = result.replace(/\<rp\>/g, '').replace(/\<\/rp\>/g, '').replace(/\<rt\>/g, '').replace(/\<\/rt\>/g, '').replace(/\<ruby\>/g, '[').replace(/\<\/ruby\>/g, ']');
-        let arr = Array.from(new Set(s2.match(/\[.*?\(.*?\)\]/g)));
-        for (let i = 0; i < arr.length; i++) {
-          let wordName = arr[i].slice(1, arr[i].indexOf('('));
-          tmpName = tmpName.replace(eval(`/${wordName}/g`), arr[i]);
+      this.effectKanjiKanaAPI(this.form.description).then(kk => {
+        if (kk) {
+          this.form.description = kk;
+        } else {
+          this.form.description = this.kanjiToKana(this.form.description);
         }
-        this.form.name = tmpName;
-      } else {
-        // 按字注音
-        let tmpName = this.form.name;
-        let noKanaStr = tmpName.replace(/\[.*?\(.*?\)]/g, '').replace(/\s+/g, '');
-        let arr = Array.from(new Set(noKanaStr.split('')));
-        for (let i = 0; i < arr.length; i++) {
-          let k = this.kUtil.isKanji(arr[i]);
-          if (k) {
-            let r = await this.kuroshiro.convert(arr[i], {mode: "furigana", to: "hiragana"});
-            let s2 = r.replace(/\<rp\>/g, '').replace(/\<\/rp\>/g, '').replace(/\<rt\>/g, '').replace(/\<\/rt\>/g, '').replace(/\<ruby\>/g, '[').replace(/\<\/ruby\>/g, ']');
-            tmpName = tmpName.replace(eval(`/${arr[i]}/g`), s2);
-          }
+      });
+      this.effectKanjiKanaAPI(this.form.pendulumDescription).then(kk => {
+        if (kk) {
+          this.form.pendulumDescription = kk;
+        } else {
+          this.form.pendulumDescription = this.kanjiToKana(this.form.pendulumDescription);
         }
-        this.form.name = tmpName;
-      }
+      });
     },
     baseImage(path) {
       return require('@/assets/image' + path);
@@ -709,6 +694,7 @@ export default {
       } else if (value === 'tc') {
         Object.assign(this.form, tcDemo);
       } else if (value === 'jp') {
+        Object.assign(this.currentCardData, jpDataDemo);
         Object.assign(this.form, jpDemo);
       } else if (value === 'en') {
         Object.assign(this.form, enDemo);
@@ -802,7 +788,8 @@ export default {
       this.searchCardByPassword();
     },
     async parseData(data) {
-      let cardInfo = await this.parseYugiohCard(data, this.form.language);
+      Object.assign(this.currentCardData, data);
+      let cardInfo = await this.parseYugiohCard(data, this.form.language, this.useKK);
       Object.assign(this.form, cardInfo);
     },
     searchCardByPassword() {
@@ -855,7 +842,8 @@ export default {
           lang: this.form.language
         }
       });
-      let cardInfo = await this.parseYugiohCard(res.data.data, this.form.language);
+      Object.assign(this.currentCardData, res.data.data);
+      let cardInfo = await this.parseYugiohCard(res.data.data, this.form.language, this.useKK);
       Object.assign(this.form, cardInfo);
       this.randomLoading = false;
     },
@@ -1263,6 +1251,11 @@ export default {
         this.form.laser = false;
         this.form.radius = false;
       }
+    },
+    'useKK'() {
+      this.parseYugiohCard(this.currentCardData, this.form.language, this.useKK).then(cardInfo => {
+        Object.assign(this.form, cardInfo);
+      });
     }
   }
 };
