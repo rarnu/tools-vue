@@ -145,7 +145,6 @@
                   <br v-if="!item">
                 </template>
               </div>
-
             </div>
           </div>
 
@@ -651,13 +650,23 @@ export default {
           this.form.name = this.kanjiToKana(this.cardName);
         }
       });
-      this.effectKanjiKanaAPI(this.form.description).then(kk => {
-        if (kk) {
-          this.form.description = kk;
-        } else {
-          this.form.description = this.kanjiToKana(this.form.description);
-        }
-      });
+      if (this.form.cardType === 'normal' && this.form.pendulumType === 'normal-pendulum') {
+        this.normalKanjiKanaAPI(this.form.description).then(kk => {
+          if (kk) {
+            this.form.description = kk;
+          } else {
+            this.form.description = this.kanjiToKana(this.form.description);
+          }
+        });
+      } else {
+        this.effectKanjiKanaAPI(this.form.description).then(kk => {
+          if (kk) {
+            this.form.description = kk;
+          } else {
+            this.form.description = this.kanjiToKana(this.form.description);
+          }
+        });
+      }
       this.effectKanjiKanaAPI(this.form.pendulumDescription).then(kk => {
         if (kk) {
           this.form.pendulumDescription = kk;

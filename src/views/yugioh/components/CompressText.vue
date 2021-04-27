@@ -62,6 +62,8 @@ export default {
       let ruby = el.parentNode;
       let rt = el;
       rt.classList.remove('justify');
+      rt.style.paddingLeft = '0px';
+      rt.style.paddingRight = '0px';
       ruby.style.margin = '';
       rt.style.transform = '';
       rt.style.left = '';
@@ -69,9 +71,23 @@ export default {
       let text = ruby.innerText.split('\n')[0];
       let rubyWidth = ruby.offsetWidth;
       let rtWidth = rt.offsetWidth;
-      if (rtWidth / rubyWidth < 0.9 && text.length > 1) {
+      let rrv = rtWidth / rubyWidth;
+      if (rrv < 0.9 && text.length > 1) {
         // 拉伸两端对齐
         rt.classList.add('justify');
+        if (rrv < 0.25) {
+          let pd = (rubyWidth - rtWidth) / 4;
+          rt.style.paddingLeft = `${pd}px`;
+          rt.style.paddingRight = `${pd}px`;
+        } else if (rrv >= 0.25 && rrv < 0.35) {
+          let pd = (rubyWidth - rtWidth) / 8;
+          rt.style.paddingLeft = `${pd}px`;
+          rt.style.paddingRight = `${pd}px`;
+        } else if (rrv >= 0.35 && rrv < 0.45) {
+          let pd = (rubyWidth - rtWidth) / 12;
+          rt.style.paddingLeft = `${pd}px`;
+          rt.style.paddingRight = `${pd}px`;
+        }
       } else if (rtWidth > rubyWidth) {
         // 压缩
         if (rubyWidth / rtWidth < 0.6) {

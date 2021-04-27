@@ -1,6 +1,6 @@
 <template>
   <div class="about-dialog-container">
-    <el-dialog title="关于游戏王卡片制作器 3.2.3" :modelValue="modelValue" width="500px" :before-close="closeDialog">
+    <el-dialog title="关于游戏王卡片制作器 3.3.0" :modelValue="modelValue" width="500px" :before-close="closeDialog">
       <div class="about-main">
         <p>本软件遵从 MIT 开源协议</p>
         <p>开源地址:</p>
@@ -21,16 +21,8 @@
         </p>
         <p><b>依赖的闭源后端</b></p>
         <p>&nbsp;&nbsp;
-          <el-button type="text">tools.kooriookami.top/api</el-button>
-          提供各语言的卡片效果数据
-        </p>
-        <p>&nbsp;&nbsp;
-          <el-button type="text">rarnu.xyz/kk/search</el-button>
-          提供日文卡片名称的注音数据
-        </p>
-        <p>&nbsp;&nbsp;
-          <el-button type="text">developer.baidu.com</el-button>
-          提供卡片效果的翻译 API
+          <el-button type="text">rarnu.xyz/api/yugioh</el-button>
+          提供卡片数据，AI 注音数据
         </p>
       </div>
       <template #footer>

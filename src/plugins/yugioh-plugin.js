@@ -24,6 +24,7 @@ export default {
                 def: parseDef(data),
                 arrowList: parseArrowList(data),
                 description: parseDescription(data),
+                firstLineCompress: parseFirstLineCompress(data),
                 package: parsePackage(data),
                 password: parsePassword(data)
             };
@@ -35,21 +36,16 @@ export default {
                 } else {
                     card.name = vm.kanjiToKana(card.name);
                 }
-                // 蛋疼，反过来再处理下(这个已经被服务器处理了)
-                // card.name = card.name.replaceAll('∀', 'Ɐ').replaceAll('’','´');
-                // card.name = vm.kanjiToKana(card.name);
                 let pekk = await vm.effectKanjiKanaAPI(card.pendulumDescription);
                 if (pekk) {
-                    console.log('pekk: ' + pekk);
                     card.pendulumDescription = pekk;
                 } else {
                     card.pendulumDescription = vm.kanjiToKana(card.pendulumDescription)
                 }
-                // card.pendulumDescription = vm.kanjiToKana(card.pendulumDescription);
                 card.monsterType = vm.kanjiToKana(card.monsterType);
-                let efkk = await vm.effectKanjiKanaAPI(card.description);
+
+                let efkk = (card.cardType === 'normal' && card.pendulumType === 'normal-pendulum') ? await vm.normalKanjiKanaAPI(card.description) : await vm.effectKanjiKanaAPI(card.description);
                 if (efkk) {
-                    console.log('efkk: ' + efkk);
                     card.description = efkk;
                 } else {
                     card.description = vm.kanjiToKana(card.description);
@@ -59,6 +55,7 @@ export default {
         };
         // 添加假名
         app.config.globalProperties.kanjiToKana = function (text = '') {
+            if (text === '') return '';
             // 重新排序kanjiKanaMap，最长key的放在最前
             let kanjiKanaReg = new RegExp(Object.keys(kanjiKanaMap).sort((a, b) => b.length - a.length).join('|'), 'g');
             return text.replace(/\[.*?\(.*?\)]/g, s => `|${s}|`).split('|').filter(value => value).map(value => {
@@ -70,21 +67,46 @@ export default {
         };
         // 卡名注音 API
         app.config.globalProperties.kanjiKanaAPI = async function (text = '') {
-            let json = await vm.axios.post('http://rarnu.xyz:9987/kk/search', {name: text});
-            let d = json.data;
-            if (!d.found) {
+            if (text === '') return '';
+            try {
+                let json = await vm.axios.post(vm.rarnuURL + '/search', {name: text});
+                let d = json.data;
+                if (!d.found) {
+                    return null;
+                }
+                return d.kk;
+            } catch (e) {
                 return null;
             }
-            return d.kk;
         };
         // 效果注音
-        app.config.globalProperties.effectKanjiKanaAPI = async function(text = '') {
-            let json = await vm.axios.post('http://rarnu.xyz:9987/kk/effect', {name: text});
-            let d = json.data;
-            if (!d.found) {
+        app.config.globalProperties.effectKanjiKanaAPI = async function (text = '') {
+            if (text === '') return '';
+            try {
+                let json = await vm.axios.post(vm.rarnuURL + '/effect', {name: text});
+                let d = json.data;
+                if (!d.found) {
+                    return null;
+                }
+                return d.kk;
+            } catch (e) {
                 return null;
             }
-            return d.kk;
+        };
+        // 常规文本注音
+        app.config.globalProperties.normalKanjiKanaAPI = async function (text = '') {
+            if (text === '') return '';
+            try {
+                let json = await vm.axios.post(vm.rarnuURL + '/normal', {name: text});
+                let d = json.data;
+                console.log(d);
+                if (!d.found) {
+                    return null;
+                }
+                return d.kk;
+            } catch (e) {
+                return null;
+            }
         }
     }
 };
@@ -247,6 +269,12 @@ function parsePendulumType(data) {
 function parseLevelRank(data) {
     let number = parseInt(data.level.toString(16).substr(-1), 16);
     if (number <= 13) {
+        let pass = parsePassword(data);
+        if (pass.trim() === '01686814' || pass.trim() === '90884403'    // 同调2
+            || pass.trim() === '65305468' || pass.trim() === '43490025' || pass.trim() === '26973555' || pass.trim() === '52653092' // 超量4
+        ) {
+            return 0;
+        }
         return number;
     } else {
         return 1;
@@ -456,6 +484,10 @@ function parseDescription(data) {
         }
     }
     return description;
+}
+
+function parseFirstLineCompress(data) {
+    return ['monster', 'pendulum'].includes(parseType(data)) && ['fusion', 'synchro', 'xyz', 'link'].includes(parseCardType(data));
 }
 
 function parsePackage(data) {
