@@ -43,8 +43,7 @@ export default {
                     card.pendulumDescription = vm.kanjiToKana(card.pendulumDescription)
                 }
                 card.monsterType = vm.kanjiToKana(card.monsterType);
-
-                let efkk = (card.cardType === 'normal' && card.pendulumType === 'normal-pendulum') ? await vm.normalKanjiKanaAPI(card.description) : await vm.effectKanjiKanaAPI(card.description);
+                let efkk = ((card.type === 'monster' && card.cardType === 'normal') || (card.type === 'pendulum' && card.pendulumType === 'normal-pendulum')) ? await vm.normalKanjiKanaAPI(card.description) : await vm.effectKanjiKanaAPI(card.description);
                 if (efkk) {
                     card.description = efkk;
                 } else {
@@ -99,7 +98,6 @@ export default {
             try {
                 let json = await vm.axios.post(vm.rarnuURL + '/normal', {name: text});
                 let d = json.data;
-                console.log(d);
                 if (!d.found) {
                     return null;
                 }

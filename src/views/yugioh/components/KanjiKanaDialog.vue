@@ -8,8 +8,8 @@
       </el-form>
       <template #footer>
         <el-button plain size="medium" @click="closeDialog">关闭</el-button>
-        <el-button type="primary" size="medium" @click="addKana">注音</el-button>
-        <el-button type="primary" size="medium" @click="remoteAddKana">远程注音</el-button>
+        <el-button type="primary" size="medium" @click="remoteKanaEffect">注音(偏重卡片效果)</el-button>
+        <el-button type="primary" size="medium" @click="remoteKanaNormal">注音(偏重日语语句)</el-button>
       </template>
     </el-dialog>
   </div>
@@ -40,15 +40,23 @@ export default {
       this.resetForm('form');
       this.$emit('update:modelValue', false);
     },
-    addKana() {
-      this.form.text = this.kanjiToKana(this.form.text);
+    remoteKanaEffect() {
+      this.effectKanjiKanaAPI(this.form.text).then(kk => {
+        if (kk) {
+          this.form.text = kk;
+        } else {
+          this.form.text = this.kanjiToKana(this.form.text);
+        }
+      });
     },
-    remoteAddKana() {
-      try {
-        ipcRenderer.send('remote-kanji-kana', {text: this.form.text});
-      } catch (e) {
-
-      }
+    remoteKanaNormal() {
+      this.normalKanjiKanaAPI(this.form.text).then(kk => {
+        if (kk) {
+          this.form.text = kk;
+        } else {
+          this.form.text = this.kanjiToKana(this.form.text);
+        }
+      });
     }
   }
 };

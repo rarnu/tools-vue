@@ -7,7 +7,7 @@
           <el-input type="textarea" :autosize="{minRows: 5}" v-model="form.text" placeholder="请输入中文效果"></el-input>
         </el-form-item>
         <el-form-item label="效果翻译">
-          <el-button type="primary" @click="translate">翻译 (将中文效果翻译为日文并注音)</el-button>
+          <el-button type="primary" @click="translate">翻译 (将中文效果翻译为日文)</el-button>
         </el-form-item>
         <el-form-item label="日文效果">
           <el-input type="textarea" :autosize="{minRows: 5}" v-model="form.textjp" placeholder="请输入日文效果"></el-input>
@@ -29,28 +29,12 @@
             </el-col>
           </el-row>
         </el-form-item>
-<!--        <el-form-item label="常用语句">-->
-<!--          <el-row :gutter="10">-->
-<!--            <el-col :span="5">-->
-<!--              <el-select v-model="form.effectKey" placeholder="请选择效果语句" style="width: 100%;" clearable filterable @change="effectKeyChange">-->
-<!--                <el-option v-for="item in effectKeys" :value="item"></el-option>-->
-<!--              </el-select>-->
-<!--            </el-col>-->
-<!--            <el-col :span="15">-->
-<!--              <el-select v-model="form.effectjp" placeholder="请选择效果语句" style="width: 100%;" clearable filterable>-->
-<!--                <el-option v-for="item in effectSequences" :value="item"></el-option>-->
-<!--              </el-select>-->
-<!--            </el-col>-->
-<!--            <el-col :span="4">-->
-<!--              <el-button type="primary" @click="writeEffect">写入</el-button>-->
-<!--            </el-col>-->
-<!--          </el-row>-->
-<!--        </el-form-item>-->
       </el-form>
 
       <template #footer>
         <el-button plain size="medium" @click="closeDialog">关闭</el-button>
-        <el-button type="primary" size="medium" @click="remoteAddKana">远程注音</el-button>
+        <el-button type="primary" size="medium" @click="remoteKanaEffect">注音(偏重卡片效果)</el-button>
+        <el-button type="primary" size="medium" @click="remoteKanaNormal">注音(偏重日语语句)</el-button>
       </template>
     </el-dialog>
   </div>
@@ -88,7 +72,7 @@ export default {
         }
         let str = '';
         args.texts.forEach((item) => {
-          str += this.kanjiToKana(item) + '\n';
+          str += item + '\n';
         });
         this.form.textjp += str;
       });
@@ -108,12 +92,23 @@ export default {
     this.firstLineTypes = Object.keys(cardTypeList);
   },
   methods: {
-    remoteAddKana() {
-      try {
-        ipcRenderer.send('remote-effect-kana', {text: this.form.textjp});
-      } catch (e) {
-
-      }
+    remoteKanaEffect() {
+      this.effectKanjiKanaAPI(this.form.textjp).then(kk => {
+        if (kk) {
+          this.form.textjp = kk;
+        } else {
+          this.form.textjp = this.kanjiToKana(this.form.textjp);
+        }
+      });
+    },
+    remoteKanaNormal() {
+      this.normalKanjiKanaAPI(this.form.textjp).then(kk => {
+        if (kk) {
+          this.form.textjp = kk;
+        } else {
+          this.form.textjp = this.kanjiToKana(this.form.textjp);
+        }
+      });
     },
     writeEffect() {
       const text = effectList[this.form.effectKey][this.form.effectjp];

@@ -581,7 +581,8 @@ export default {
         flash0: false,
         flash1: false,
         flash2: 0,
-        redName: ''
+        redName: '',
+        scalePendulumImage: false
       },
       lastDescriptionHeight: 300,   // 最后一行效果压缩高度
       kanjiKanaDialog: false,
@@ -650,7 +651,7 @@ export default {
           this.form.name = this.kanjiToKana(this.cardName);
         }
       });
-      if (this.form.cardType === 'normal' && this.form.pendulumType === 'normal-pendulum') {
+      if ((this.form.type === 'monster' && this.form.cardType === 'normal') || (this.form.type === 'pendulum' && this.form.pendulumType === 'normal-pendulum')) {
         this.normalKanjiKanaAPI(this.form.description).then(kk => {
           if (kk) {
             this.form.description = kk;
@@ -1105,7 +1106,7 @@ export default {
         left = '94px';
         top = '365px';
         width = '1206px';
-        height = '1204px';
+        height = this.form.scalePendulumImage ? '894px' : '1204px';
       } else {
         left = '171px';
         top = '373px';
@@ -1215,41 +1216,53 @@ export default {
     // 图片转base64
     'form.image'() {
       if (this.form.image && !this.form.image.startsWith('data:image')) {
-        loadImage(this.form.image, {
-          canvas: true,
-          top: 0,
-          aspectRatio: 1,
-          crossOrigin: 'Anonymous'
-        }).then(data => {
-          this.form.image = data.image.toDataURL('image/png', 1);
-          let count = 1;
-          for (let i = 0; i < this.ydkData.length; i++) {
-            if (parseInt(this.ydkData[i].id) === parseInt(this.form.password)) {
-              count = this.ydkData[i].count;
-              break;
+        let im = new Image()
+        im.src = this.form.image;
+        im.onload = (e) => {
+          let ratio = 1.0;
+          this.form.scalePendulumImage = false;
+          if (this.form.type === 'pendulum') {
+            if (im.width / im.height > 1.2) {
+              ratio = 89/66;
+              this.form.scalePendulumImage = true;
             }
           }
-          setTimeout(() => {
-            if (this.batchExporting) {
-              // 如果正在批量导出，就导出卡图
-              let element = document.querySelector('.yugioh-card');
-              html2canvas(element, {
-                useCORS: true,
-                backgroundColor: 'transparent',
-                width: this.form.scale * 1393,
-                height: this.form.scale * 2031,
-              }).then(canvas => {
-                let dataURL = canvas.toDataURL('image/png', 1);
-                try {
-                  ipcRenderer.send('export-image', {path: this.exportDirectory, name: this.cardName, b64: dataURL, id: this.form.password, count: count});
-                } catch (e) {
-                }
-              }).finally(() => {
-                this.exportLoading = false;
-              });
+          loadImage(this.form.image, {
+            canvas: true,
+            top: 0,
+            aspectRatio: ratio /* 1 */,
+            crossOrigin: 'Anonymous'
+          }).then(data => {
+            this.form.image = data.image.toDataURL('image/png', 1);
+            let count = 1;
+            for (let i = 0; i < this.ydkData.length; i++) {
+              if (parseInt(this.ydkData[i].id) === parseInt(this.form.password)) {
+                count = this.ydkData[i].count;
+                break;
+              }
             }
-          }, 3000);
-        });
+            setTimeout(() => {
+              if (this.batchExporting) {
+                // 如果正在批量导出，就导出卡图
+                let element = document.querySelector('.yugioh-card');
+                html2canvas(element, {
+                  useCORS: true,
+                  backgroundColor: 'transparent',
+                  width: this.form.scale * 1393,
+                  height: this.form.scale * 2031,
+                }).then(canvas => {
+                  let dataURL = canvas.toDataURL('image/png', 1);
+                  try {
+                    ipcRenderer.send('export-image', {path: this.exportDirectory, name: this.cardName, b64: dataURL, id: this.form.password, count: count});
+                  } catch (e) {
+                  }
+                }).finally(() => {
+                  this.exportLoading = false;
+                });
+              }
+            }, 3000);
+          });
+        };
       }
     },
     'printMode'() {
