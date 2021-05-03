@@ -194,7 +194,7 @@
             <el-image :src="baseImage('/flash_effect.png')"></el-image>
           </div>
 
-          <div class="card-flash-0">
+          <div class="card-flash-0" v-if="form.type !== 'pendulum'">
             <el-image :src="baseImage(`/flash_${form.flash2}.png`)"></el-image>
           </div>
 
