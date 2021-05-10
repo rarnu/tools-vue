@@ -5,7 +5,7 @@
         <div class="yugioh-card" :class="cardClass" :style="cardStyle" ondragstart="return false">
 
           <div class="card-name" v-name-color="form.color">
-            <CompressText :text="form.name" :fontLoading="fontLoading" :width="1030" :height="200" :specColor="form.redName" :language="form.language"></CompressText>
+            <CompressText :text="form.name" :refreshKey="refreshKey" :fontLoading="fontLoading" :width="1030" :height="200" :specColor="form.redName" :language="form.language"></CompressText>
           </div>
           <div class="card-attribute">
             <el-image :src="attributeSrc"></el-image>
@@ -25,14 +25,14 @@
 
           <div class="spell-trap-link" v-if="['spell','trap'].includes(form.type) && form.icon.startsWith('link-')">
             <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? '[' : '【' }}</span>
-            <CompressText :text="spellTrapLinkName" :fontLoading="fontLoading"></CompressText>
+            <CompressText :text="spellTrapLinkName" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
             <el-image class="spell-trap-icon" v-if="['link-filed', 'link-quick-play', 'link-equip', 'link-continuous', 'link-ritual', 'link-counter'].includes(form.icon)" :src="baseImage(`/icon-${form.icon.replace('link-', '')}.png`)"></el-image>
             <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? ']' : '】' }}</span>
           </div>
 
           <div class="spell-trap" v-if="['spell','trap'].includes(form.type) && !form.icon.startsWith('link-')">
             <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? '[' : '【' }}</span>
-            <CompressText :text="spellTrapName" :fontLoading="fontLoading"></CompressText>
+            <CompressText :text="spellTrapName" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
             <el-image class="spell-trap-icon" v-if="['filed', 'quick-play', 'equip', 'continuous', 'ritual', 'counter'].includes(form.icon)" :src="baseImage(`/icon-${form.icon}.png`)"></el-image>
             <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? ']' : '】' }}</span>
           </div>
@@ -68,7 +68,7 @@
           </div>
 
           <div class="pendulum-description" v-if="form.type==='pendulum'">
-            <CompressText :text="form.pendulumDescription" :width="950" :height="230" :fontLoading="fontLoading"
+            <CompressText :text="form.pendulumDescription" :width="950" :height="230" :refreshKey="refreshKey" :fontLoading="fontLoading"
                           :language="form.language" autoSizeElement=".pendulum-description"></CompressText>
           </div>
 
@@ -109,14 +109,14 @@
           <div class="card-description" v-card-description>
             <div v-if="['monster','pendulum'].includes(form.type)" class="card-effect">
               <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? '[' : '【' }}</span>
-              <CompressText :text="form.monsterType" :fontLoading="fontLoading"></CompressText>
+              <CompressText :text="form.monsterType" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
               <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? ']' : '】' }}</span>
             </div>
 
             <div class="description-info" :style="descriptionStyle">
               <!-- 只有一行的情况，无论如何都全文本压缩 -->
               <div v-if="form.description.split('\n').length === 1">
-                <CompressText :text="form.description" :width="1170" :height="300" :fontLoading="fontLoading"
+                <CompressText :text="form.description" :width="1170" :height="300" :refreshKey="refreshKey" :fontLoading="fontLoading"
                               :language="form.language" autoSizeElement=".card-description"></CompressText>
               </div>
               <div v-else>
@@ -125,20 +125,20 @@
                   <div v-if="index === 0">
                     <!-- 如果第一行压缩 -->
                     <div v-if="form.firstLineCompress">
-                      <CompressText :text="item" :width="1170" :height="70" :fontLoading="fontLoading"></CompressText>
+                      <CompressText :text="item" :width="1170" :height="70" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
                     </div>
                     <!-- 否则按其他行一样处理 -->
                     <div v-else>
-                      <CompressText :text="item" :fontLoading="fontLoading"></CompressText>
+                      <CompressText :text="item" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
                     </div>
                   </div>
                   <!--中间行不压缩-->
                   <div v-if="index > 0 && index < (form.description.split('\n').length - 1)">
-                    <CompressText :text="item" :fontLoading="fontLoading"></CompressText>
+                    <CompressText :text="item" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
                   </div>
                   <!--最后一行压缩-->
                   <div v-if="index !== 0 && index === (form.description.split('\n').length - 1)" class="last-description">
-                    <CompressText :text="item" :width="1170" :height="lastDescriptionHeight" :fontLoading="fontLoading"
+                    <CompressText :text="item" :width="1170" :height="lastDescriptionHeight" :refreshKey="refreshKey" :fontLoading="fontLoading"
                                   :language="form.language" autoSizeElement=".card-description"></CompressText>
                   </div>
                   <!--item为空提供换行-->
@@ -348,29 +348,43 @@
               <el-button style="margin-left: 10px" plain @click="deleteImage">删除</el-button>
             </el-form-item>
             <el-form-item label="卡类" v-if="form.type==='monster'">
-              <el-select v-model="form.cardType" placeholder="请选择卡类">
-                <el-option label="通常" value="normal"></el-option>
-                <el-option label="效果" value="effect"></el-option>
-                <el-option label="仪式" value="ritual"></el-option>
-                <el-option label="融合" value="fusion"></el-option>
-                <el-option label="同调" value="synchro"></el-option>
-                <el-option label="黑暗同调" value="darksync"></el-option>
-                <el-option label="超量" value="xyz"></el-option>
-                <el-option label="连接" value="link"></el-option>
-                <el-option label="衍生物" value="token"></el-option>
-              </el-select>
+              <el-row :gutter="10">
+                <el-col :span="12">
+                  <el-select v-model="form.cardType" placeholder="请选择卡类">
+                    <el-option label="通常" value="normal"></el-option>
+                    <el-option label="效果" value="effect"></el-option>
+                    <el-option label="仪式" value="ritual"></el-option>
+                    <el-option label="融合" value="fusion"></el-option>
+                    <el-option label="同调" value="synchro"></el-option>
+                    <el-option label="黑暗同调" value="darksync"></el-option>
+                    <el-option label="超量" value="xyz"></el-option>
+                    <el-option label="连接" value="link"></el-option>
+                    <el-option label="衍生物" value="token"></el-option>
+                  </el-select>
+                </el-col>
+                <el-col :span="12">
+                  <el-switch v-model="specialColor" :disabled="form.cardType !== 'effect' && form.cardType !== 'normal'" active-text="特殊调色"></el-switch>
+                </el-col>
+              </el-row>
             </el-form-item>
             <el-form-item label="灵摆" v-if="form.type==='pendulum'">
-              <el-select v-model="form.pendulumType" placeholder="请选择灵摆">
-                <el-option label="通常／灵摆" value="normal-pendulum"></el-option>
-                <el-option label="效果／灵摆" value="effect-pendulum"></el-option>
-                <el-option label="仪式／灵摆" value="ritual-pendulum"></el-option>
-                <el-option label="融合／灵摆" value="fusion-pendulum"></el-option>
-                <el-option label="同调／灵摆" value="synchro-pendulum"></el-option>
-                <el-option label="黑暗同调／灵摆" value="darksync-pendulum"></el-option>
-                <el-option label="超量／灵摆" value="xyz-pendulum"></el-option>
-                <el-option label="链接／灵摆" value="link-pendulum"></el-option>
-              </el-select>
+              <el-row :gutter="10">
+                <el-col :span="12">
+                  <el-select v-model="form.pendulumType" placeholder="请选择灵摆">
+                    <el-option label="通常／灵摆" value="normal-pendulum"></el-option>
+                    <el-option label="效果／灵摆" value="effect-pendulum"></el-option>
+                    <el-option label="仪式／灵摆" value="ritual-pendulum"></el-option>
+                    <el-option label="融合／灵摆" value="fusion-pendulum"></el-option>
+                    <el-option label="同调／灵摆" value="synchro-pendulum"></el-option>
+                    <el-option label="黑暗同调／灵摆" value="darksync-pendulum"></el-option>
+                    <el-option label="超量／灵摆" value="xyz-pendulum"></el-option>
+                    <el-option label="链接／灵摆" value="link-pendulum"></el-option>
+                  </el-select>
+                </el-col>
+                <el-col :span="12">
+                  <el-switch v-model="specialColor" :disabled="form.pendulumType !== 'effect-pendulum' && form.pendulumType !== 'normal-pendulum'" active-text="特殊调色"></el-switch>
+                </el-col>
+              </el-row>
             </el-form-item>
             <el-form-item label="星级" v-if="showLevel || showMinusLevel">
               <el-input-number v-model="form.level" :min="0" :max="13" :precision="0"></el-input-number>
@@ -422,6 +436,9 @@
             <el-form-item label="效果">
               <el-switch v-model="form.firstLineCompress" active-text="首行压缩(只有一行时无效)"></el-switch>
               <el-input type="textarea" :autosize="{minRows: 3}" v-model="form.description" placeholder="请输入效果"></el-input>
+            </el-form-item>
+            <el-form-item label="字号">
+              <el-slider v-model="form.descriptionZoom" :min="0.5" :max="1.5" :step="0.02" @input="changeDescriptionZoom"></el-slider>
             </el-form-item>
             <el-form-item label="卡包">
               <el-input v-model="form.package" placeholder="请输入卡包"></el-input>
@@ -547,6 +564,7 @@ export default {
   },
   data() {
     return {
+      refreshKey: 0,
       aboutDialog: false,
       fontLoading: true,
       searchLoading: false,
@@ -554,6 +572,7 @@ export default {
       exportLoading: false,
       useKK: true,
       kanaServer: true,
+      specialColor: false,
       currentCardData: {},
       form: {
         language: 'jp',
@@ -586,7 +605,8 @@ export default {
         flash1: false,
         flash2: 0,
         redName: '',
-        scalePendulumImage: false
+        scalePendulumImage: false,
+        descriptionZoom: 1
       },
       lastDescriptionHeight: 300,   // 最后一行效果压缩高度
       kanjiKanaDialog: false,
@@ -643,6 +663,7 @@ export default {
     window.assignCardData = this.assignCardData;
     document.fonts.ready.then(() => {
       this.fontLoading = false;
+      this.refreshKey++;
     });
   },
   methods: {
@@ -699,6 +720,7 @@ export default {
         this.fontLoading = true;
         document.fonts.ready.then(() => {
           this.fontLoading = false;
+          this.refreshKey++;
         });
       });
     },
@@ -745,6 +767,9 @@ export default {
         this.$message.warning('不允许换行符');
         this.form.pendulumDescription = this.form.pendulumDescription.replace('\n', '');
       }
+    },
+    changeDescriptionZoom() {
+      this.refreshKey++;
     },
     toggleArrow(item) {
       if (this.form.arrowList.includes(item)) {
@@ -960,6 +985,19 @@ export default {
     cardStyle() {
       let background;
       let cp = this.printMode ? 'pcard' : 'card';
+      if (this.form.type === 'pendulum') {
+        if (this.form.pendulumType === 'normal-pendulum' || this.form.pendulumType === 'effect-pendulum') {
+          if (this.specialColor) {
+            cp = 'scard';
+          }
+        }
+      } else if (this.form.type === 'monster') {
+        if (this.form.cardType === 'normal' || this.form.cardType === 'effect') {
+          if (this.specialColor) {
+            cp = 'scard';
+          }
+        }
+      }
       if (this.form.cardBack) {
         let u = this.baseImage('/card-back.png');
         background = `url(${u}) no-repeat center/cover`;
@@ -978,7 +1016,8 @@ export default {
         background: background,
         borderRadius: this.form.radius ? '24px' : '',
         marginRight: `${(this.form.scale - 1) * 1393}px`,
-        marginBottom: `${(this.form.scale - 1) * 2031}px`
+        marginBottom: `${(this.form.scale - 1) * 2031}px`,
+        '--descriptionZoom': this.form.descriptionZoom
       };
     },
     attributeSrc() {
@@ -1338,14 +1377,14 @@ export default {
       position: absolute;
       left: 116px;
       width: 1030px;
-      max-height: 130px;
+      //max-height: 130px;
 
-      ::v-deep(.ruby) {
-        .rt {
-          font-size: 18px;
-          top: 3px;
-        }
-      }
+      //::v-deep(.ruby) {
+      //  .rt {
+      //    font-size: 18px;
+      //    top: 3px;
+      //  }
+      //}
     }
 
     .card-attribute {
@@ -1377,12 +1416,12 @@ export default {
       display: flex;
       align-items: center;
 
-      ::v-deep(.ruby) {
-        .rt {
-          font-size: 18px;
-          top: -2px;
-        }
-      }
+      //::v-deep(.ruby) {
+      //  .rt {
+      //    font-size: 18px;
+      //    top: -2px;
+      //  }
+      //}
 
       .el-image {
         display: flex;
@@ -1395,12 +1434,12 @@ export default {
       display: flex;
       align-items: center;
 
-      ::v-deep(.ruby) {
-        .rt {
-          font-size: 18px;
-          top: -2px;
-        }
-      }
+      //::v-deep(.ruby) {
+      //  .rt {
+      //    font-size: 18px;
+      //    top: -2px;
+      //  }
+      //}
 
       .el-image {
         display: flex;
@@ -1463,12 +1502,12 @@ export default {
       text-align: justify;
       z-index: 20;
 
-      ::v-deep(.ruby) {
-        .rt {
-          font-size: 12px;
-          top: -5px;
-        }
-      }
+      //::v-deep(.ruby) {
+      //  .rt {
+      //    font-size: 12px;
+      //    top: -5px;
+      //  }
+      //}
     }
 
     .card-package {
@@ -1495,22 +1534,22 @@ export default {
       .card-effect {
         white-space: nowrap;
 
-        ::v-deep(.ruby) {
-          .rt {
-            font-size: 14px;
-            top: -3px;
-          }
-        }
+        //::v-deep(.ruby) {
+        //  .rt {
+        //    font-size: 14px;
+        //    top: -3px;
+        //  }
+        //}
       }
 
-      .description-info {
-        ::v-deep(.ruby) {
-          .rt {
-            font-size: 12px;
-            top: -5px;
-          }
-        }
-      }
+      //.description-info {
+      //  ::v-deep(.ruby) {
+      //    .rt {
+      //      font-size: 12px;
+      //      top: -5px;
+      //    }
+      //  }
+      //}
     }
 
     .atk-def-link {
