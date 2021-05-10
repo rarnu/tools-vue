@@ -123,14 +123,14 @@ export default {
           let scale = 0.5;
           let start = 0;
           let end = 1;
-          // let time = 0;
+          let time = 0;
           while (scale > 0) {
-            // time++;
+            time++;
             scale = (start + end) / 2;
             el.style.width = `${params.width / scale}px`;
             el.style.transform = `scaleX(${scale})`;
             el.clientHeight > params.height ? end = scale : start = scale;
-            if (el.clientHeight <= params.height && end - start <= /*0.01*/ 0.02) {
+            if ((el.clientHeight <= params.height && end - start <= /*0.01*/ 0.02) || time > 8) {
               // 如果是英文，灵摆和效果栏字体判断缩小
               if (params.language === 'en' && params.autoSizeElement && (scale < /*0.7*/ 0.5)) {
                 // 防止死循环

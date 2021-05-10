@@ -5,6 +5,11 @@ const monsterTypeList = require('@/assets/json/monster-type-list.json');
 
 export default {
     install(app, options) {
+
+        // 接口请求地址配置
+        app.config.globalProperties.baseURL = 'http://182.92.234.65:9987/api';
+        app.config.globalProperties.rarnuURL = 'http://182.92.234.65:9987/kk';
+
         // 解析游戏王卡片
         app.config.globalProperties.parseYugiohCard = async function (data, lang, kk = true) {
             let card = {
@@ -23,7 +28,7 @@ export default {
                 atk: parseAtk(data),
                 def: parseDef(data),
                 arrowList: parseArrowList(data),
-                description: parseDescription(data),
+                description: parseDescription(data, lang),
                 firstLineCompress: parseFirstLineCompress(data),
                 package: parsePackage(data),
                 password: parsePassword(data)
@@ -105,6 +110,11 @@ export default {
             } catch (e) {
                 return null;
             }
+        };
+
+        app.config.globalProperties.setGlobalServer = function (api = '', kk = '') {
+            vm.baseURL = api;
+            vm.rarnuURL = kk;
         }
     }
 };
@@ -453,7 +463,7 @@ function parseArrowList(data) {
     return arrowList;
 }
 
-function parseDescription(data) {
+function parseDescription(data, lang) {
     let description = characterToHalf(data.desc);
     description = description.replace(/\r/g, '\n').replace(/\n\n/g, '\n');
     if (parseType(data) === 'pendulum') {
@@ -474,10 +484,18 @@ function parseDescription(data) {
             });
             description = charList.join('');
         } else {
+            // 先去除换行
             if (description.indexOf('●') === -1) {
+                // 没有圆点，去除换行
                 description = description.replace(/\n/g, '');
             } else {
-                // 如果有点符号，不去除换行
+                if (lang === 'sc') {
+                    description = description.replace(/\n/g, '');
+                    description = description.replace(/●/g, '\n●');
+                } else if (lang !== 'jp') {
+                    // 不是日文，去除换行
+                    description = description.replace(/\n/g, '');
+                }
             }
         }
     }

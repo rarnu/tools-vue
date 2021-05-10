@@ -24,17 +24,17 @@
           </div>
 
           <div class="spell-trap-link" v-if="['spell','trap'].includes(form.type) && form.icon.startsWith('link-')">
-            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? '[' : '【' }}</span>
+            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? '[' : '【' }}</span>
             <CompressText :text="spellTrapLinkName" :fontLoading="fontLoading"></CompressText>
             <el-image class="spell-trap-icon" v-if="['link-filed', 'link-quick-play', 'link-equip', 'link-continuous', 'link-ritual', 'link-counter'].includes(form.icon)" :src="baseImage(`/icon-${form.icon.replace('link-', '')}.png`)"></el-image>
-            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? ']' : '】' }}</span>
+            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? ']' : '】' }}</span>
           </div>
 
           <div class="spell-trap" v-if="['spell','trap'].includes(form.type) && !form.icon.startsWith('link-')">
-            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? '[' : '【' }}</span>
+            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? '[' : '【' }}</span>
             <CompressText :text="spellTrapName" :fontLoading="fontLoading"></CompressText>
             <el-image class="spell-trap-icon" v-if="['filed', 'quick-play', 'equip', 'continuous', 'ritual', 'counter'].includes(form.icon)" :src="baseImage(`/icon-${form.icon}.png`)"></el-image>
-            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? ']' : '】' }}</span>
+            <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? ']' : '】' }}</span>
           </div>
 
           <div class="card-image" v-if="form.image" :style="imageStyle">
@@ -197,9 +197,7 @@
           <div class="card-flash-0" v-if="form.type !== 'pendulum'">
             <el-image :src="baseImage(`/flash_${form.flash2}.png`)"></el-image>
           </div>
-
         </div>
-
       </template>
 
       <template #ydk>
@@ -282,6 +280,7 @@
                 <el-option label="繁体中文" value="tc"></el-option>
                 <el-option label="日文" value="jp"></el-option>
                 <el-option label="英文" value="en"></el-option>
+                <el-option label="韩文" value="kr"></el-option>
                 <el-option label="星光体" value="as"></el-option>
                 <el-option label="奥利哈钢" value="or"></el-option>
               </el-select>
@@ -294,8 +293,11 @@
                 <el-col :span="6">
                   <el-button type="primary" :disabled="form.language !== 'jp' || !useKK" style="width: 100%" @click="remoteKana">远程注音</el-button>
                 </el-col>
-                <el-col :span="12">
+                <el-col :span="9">
                   <el-switch v-model="useKK" :disabled="form.language !== 'jp'" active-text="启用注音"></el-switch>
+                </el-col>
+                <el-col :span="9">
+                  <el-switch v-model="kanaServer" active-text="主机" inactive-text="备机"></el-switch>
                 </el-col>
               </el-row>
             </el-form-item>
@@ -433,8 +435,8 @@
             </el-form-item>
             <el-form-item label="版权">
               <el-select v-model="form.copyright" placeholder="请选择版权" clearable>
-                <el-option label="简体中文" value="sc"></el-option>
-                <el-option label="日文" value="jp"></el-option>
+                <el-option label="简体中文/韩文" value="sc"></el-option>
+                <el-option label="繁体中文/日文" value="jp"></el-option>
                 <el-option label="英文" value="en"></el-option>
               </el-select>
             </el-form-item>
@@ -526,6 +528,7 @@ import jpDemo from './jp/jp-demo';
 import enDemo from './en/en-demo';
 import asDemo from './as/as-demo';
 import orDemo from './or/or-demo';
+import krDemo from './kr/kr-demo';
 import jpDataDemo from './jp/jp-data-demo';
 import AboutDialog from '@/components/dialog/AboutDialog';
 import ydk from "@/assets/js/ydk";
@@ -550,6 +553,7 @@ export default {
       randomLoading: false,
       exportLoading: false,
       useKK: true,
+      kanaServer: true,
       currentCardData: {},
       form: {
         language: 'jp',
@@ -712,6 +716,8 @@ export default {
         Object.assign(this.form, asDemo);
       } else if (value === 'or') {
         Object.assign(this.form, orDemo);
+      } else if (value === 'kr') {
+        Object.assign(this.form, krDemo);
       }
       this.refreshFont();
     },
@@ -979,6 +985,8 @@ export default {
       let suffix = '';
       if (this.form.language === 'jp') {
         suffix = '-jp';
+      } else if (this.form.language === 'kr') {
+        suffix = '-kr';
       } else if (this.form.language === 'en') {
         suffix = '-en';
       }
@@ -1022,6 +1030,12 @@ export default {
         } else if (this.form.type === 'trap') {
           name = 'fundgrun';
         }
+      } else if (this.form.language === 'kr') {
+        if (this.form.type === 'spell') {
+          name = '마법 카드';
+        } else if (this.form.type === 'trap') {
+          name = '함정 카드';
+        }
       }
       return name;
     },
@@ -1037,6 +1051,8 @@ export default {
         name = 'Link';
       } else if (this.form.language === 'or') {
         name = 'LINK';
+      } else if (this.form.language === 'kr') {
+        name = '링크';
       }
       return name;
     },
@@ -1172,6 +1188,11 @@ export default {
         color: this.form.type === 'monster' && this.form.cardType === 'xyz' ? 'white' : 'black'
       };
     },
+    monsterType() {
+      const leftBracket = ['en', 'kr'].includes(this.form.language) ? '[' : '【';
+      const rightBracket = ['en', 'kr'].includes(this.form.language) ? ']' : '】';
+      return `${leftBracket}${this.form.monsterType}${rightBracket}`;
+    },
     copyrightSrc() {
       let color = this.form.type === 'monster' && this.form.cardType === 'xyz' ? 'white' : 'black';
       return this.baseImage(`/copyright-${this.form.copyright}-${color}.svg`);
@@ -1278,6 +1299,13 @@ export default {
       this.parseYugiohCard(this.currentCardData, this.form.language, this.useKK).then(cardInfo => {
         Object.assign(this.form, cardInfo);
       });
+    },
+    'kanaServer'() {
+      if (this.kanaServer) {
+        this.setGlobalServer('http://182.92.234.65:9987/api', 'http://182.92.234.65:9987/kk');
+      } else {
+        this.setGlobalServer('http://rarnu.xyz:9987/api', 'http://rarnu.xyz:9987/kk');
+      }
     }
   }
 };
@@ -1290,6 +1318,7 @@ export default {
 @import "./en/en";
 @import "./as/as";
 @import "./or/or";
+@import "./kr/kr";
 
 .yugioh-container {
 
