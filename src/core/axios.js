@@ -6,6 +6,7 @@ import {ElNotification} from 'element-plus';
 // 请求拦截器
 axios.interceptors.request.use(config => {
     config.baseURL = vm.baseURL;
+    console.log(config.baseURL);
     if (config.method === 'get') {
         config.paramsSerializer = params => qs.stringify(params, {arrayFormat: 'repeat'});
     }

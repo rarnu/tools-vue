@@ -7,8 +7,7 @@ export default {
     install(app, options) {
 
         // 接口请求地址配置
-        app.config.globalProperties.baseURL = 'http://182.92.234.65:9987/api';
-        app.config.globalProperties.rarnuURL = 'http://182.92.234.65:9987/kk';
+        app.config.globalProperties.baseURL = 'http://yugioh.vip:9800/api';
 
         // 解析游戏王卡片
         app.config.globalProperties.parseYugiohCard = async function (data, lang, kk = true) {
@@ -73,12 +72,12 @@ export default {
         app.config.globalProperties.kanjiKanaAPI = async function (text = '') {
             if (text === '') return '';
             try {
-                let json = await vm.axios.post(vm.rarnuURL + '/search', {name: text});
+                let json = await vm.axios.post('/kanjikana/name', JSON.stringify({name: text}));
                 let d = json.data;
-                if (!d.found) {
+                if (!d.data) {
                     return null;
                 }
-                return d.kk;
+                return d.data;
             } catch (e) {
                 return null;
             }
@@ -87,12 +86,12 @@ export default {
         app.config.globalProperties.effectKanjiKanaAPI = async function (text = '') {
             if (text === '') return '';
             try {
-                let json = await vm.axios.post(vm.rarnuURL + '/effect', {name: text});
+                let json = await vm.axios.post('/kanjikana/effect', JSON.stringify({name: text}));
                 let d = json.data;
-                if (!d.found) {
+                if (!d.data) {
                     return null;
                 }
-                return d.kk;
+                return d.data;
             } catch (e) {
                 return null;
             }
@@ -101,20 +100,19 @@ export default {
         app.config.globalProperties.normalKanjiKanaAPI = async function (text = '') {
             if (text === '') return '';
             try {
-                let json = await vm.axios.post(vm.rarnuURL + '/normal', {name: text});
+                let json = await vm.axios.post( '/kanjikana/text', JSON.stringify({name: text}));
                 let d = json.data;
-                if (!d.found) {
+                if (!d.data) {
                     return null;
                 }
-                return d.kk;
+                return d.data;
             } catch (e) {
                 return null;
             }
         };
 
-        app.config.globalProperties.setGlobalServer = function (api = '', kk = '') {
+        app.config.globalProperties.setGlobalServer = function (api = '') {
             vm.baseURL = api;
-            vm.rarnuURL = kk;
         }
     }
 };

@@ -3,14 +3,16 @@ import axios from "axios";
 export default {
     getCardNameList(list, language, callback) {
         let cardSet = Array.from(new Set(list));
-        let reqSet = cardSet.map(e => axios.get(`/yugioh/card/${e}?lang=${language}`));
-        axios.all(reqSet).then(axios.spread((...result) => {
+        cardSet = cardSet.map(e => e.trim());
+        axios.post('/ydk/names', JSON.stringify({ids: cardSet, lang: language})).then(res => {
+            console.log(res.data);
             let arr = [];
-            result.forEach(e => {
-                arr.push({id: `${e.data.data.id}`, name: e.data.data.name, exported: false, count: this.getCardCount(list, `${e.data.data.id}`)});
+            res.data.data.forEach(e => {
+                console.log(e);
+                arr.push({id: `${e.id}`.trim(), name: e.name.trim(), exported: false, count: this.getCardCount(list, `${e.id}`)});
             });
             callback(arr);
-        }));
+        });
     },
 
     getCardCount(list, id) {

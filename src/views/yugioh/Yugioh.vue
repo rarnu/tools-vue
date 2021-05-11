@@ -808,7 +808,7 @@ export default {
       if (value) {
         this.axios({
           method: 'get',
-          url: '/yugioh/card',
+          url: '/yugioh/list',
           params: {
             name: this.cardName,
             lang: this.form.language
@@ -835,6 +835,7 @@ export default {
     },
     searchCardByPassword() {
       this.searchLoading = true;
+      this.form.password = this.form.password.trim();
       if (this.form.language === 'tc') {
         this.axios.get(`/yugioh/card/${this.form.password}?lang=tc`)
             .then(res => {
@@ -878,7 +879,7 @@ export default {
       this.randomLoading = true;
       let res = await this.axios({
         method: 'get',
-        url: '/yugioh/random-card',
+        url: '/yugioh/random',
         params: {
           lang: this.form.language
         }
@@ -1341,9 +1342,9 @@ export default {
     },
     'kanaServer'() {
       if (this.kanaServer) {
-        this.setGlobalServer('http://182.92.234.65:9987/api', 'http://182.92.234.65:9987/kk');
+        this.setGlobalServer('http://yugioh.vip:9800/api');
       } else {
-        this.setGlobalServer('http://rarnu.xyz:9987/api', 'http://rarnu.xyz:9987/kk');
+        this.setGlobalServer('http://rarnu.xyz:9800/api');
       }
     }
   }
