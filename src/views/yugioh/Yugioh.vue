@@ -222,14 +222,16 @@
               <div v-for="(item) in ydkData">
                 <div style=" width: 100%; height: 40px; line-height: 40px; border-bottom: 1px solid lightgray">
                   <div style="float: left; width: 10px"><span><b>{{ item.count }}</b></span></div>
-                  <div style="float: left; width: 250px; height: 40px;">
+                  <div style="float: left; width: 250px; height: 40px;" v-ydk-name-color="item.name">
                     <CompressText :text="item.name" :width="250" :height="40"></CompressText>
                   </div>
-                  <div style="float: right; width: 32px; height: 40px;">
-                    <el-button type="warning" v-if="!batchExporting" style="float: right; width: 32px; height: 32px; margin-top: 4px; padding: 0" @click.stop="showYdkCard(item.id);">显示</el-button>
+                  <div style="float: right; width: 32px; height: 40px;" >
+                    <el-button type="warning" v-if="!batchExporting && !item.name.startsWith('!NOTFOUND!')" style="float: right; width: 32px; height: 32px; margin-top: 4px; padding: 0" @click.stop="showYdkCard(item.id);">显示</el-button>
                   </div>
                   <div style="float: right; margin-right: -32px; width: 40px; height: 40px; line-height: 40px; font-size: 12px; color: darkgray;" v-if="batchExporting && item.exported">
-                    <span>已导出</span>
+                    <div v-if="!item.name.startsWith('!NOTFOUND!')">
+                      <span>已导出</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -825,7 +827,7 @@ export default {
     },
     selectCardName(value) {
       this.form.name = value.name;
-      this.form.password = value.id;
+      this.form.password = `${value.id}`;
       this.searchCardByPassword();
     },
     async parseData(data) {
@@ -963,6 +965,12 @@ export default {
         let exportId = '';
         for (let i = 0; i < this.ydkData.length; i++) {
           if (!this.ydkData[i].exported) {
+            // 如果找到没导出的
+            if (this.ydkData[i].name.startsWith('!NOTFOUND!')) {
+              // 如果是未找到的卡片，设为已导出并且继续
+              this.ydkData[i].exported = true;
+              continue;
+            }
             allExported = false;
             exportId = this.ydkData[i].id;
             break;
@@ -1256,6 +1264,14 @@ export default {
       rtList.forEach(rt => {
         rt.style.color = color;
       });
+    },
+    ydkNameColor(el, binding) {
+      let that = binding.instance;
+      let color = 'black';
+      if (binding.value.startsWith('!NOTFOUND!')) {
+        color = 'red';
+      }
+      el.style.color = color;
     },
     cardDescription(el, binding) {
       let that = binding.instance;

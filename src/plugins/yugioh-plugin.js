@@ -487,7 +487,7 @@ function parseDescription(data, lang) {
                 // 没有圆点，去除换行
                 description = description.replace(/\n/g, '');
             } else {
-                if (lang === 'sc') {
+                if (lang === 'sc' || lang === 'tc' || lang === 'en' || lang === 'kr') {
                     description = description.replace(/\n/g, '');
                     description = description.replace(/●/g, '\n●');
                 } else if (lang !== 'jp') {

@@ -5,14 +5,23 @@ export default {
         let cardSet = Array.from(new Set(list));
         cardSet = cardSet.map(e => e.trim());
         axios.post('/ydk/names', JSON.stringify({ids: cardSet, lang: language})).then(res => {
-            console.log(res.data);
-            let arr = [];
-            res.data.data.forEach(e => {
-                console.log(e);
-                arr.push({id: `${e.id}`.trim(), name: e.name.trim(), exported: false, count: this.getCardCount(list, `${e.id}`)});
+            let d = res.data.data;
+            let arr = cardSet.map(e => {
+                return {id: e, name: this.findCardFromList(d, e), exported: false, count: this.getCardCount(list, e)};
             });
             callback(arr);
         });
+    },
+
+    findCardFromList(list, id) {
+        let name = `!NOTFOUND!(${id})`;
+        for (let i = 0; i < list.length; i++) {
+            if (parseInt(list[i].id) === parseInt(id)) {
+                name = list[i].name;
+                break;
+            }
+        }
+        return name;
     },
 
     getCardCount(list, id) {
