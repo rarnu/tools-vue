@@ -276,9 +276,13 @@ function parseLevelRank(data) {
     let number = parseInt(data.level.toString(16).substr(-1), 16);
     if (number <= 13) {
         let pass = parsePassword(data);
-        if (pass.trim() === '01686814' || pass.trim() === '90884403'    // 同调2
-            || pass.trim() === '65305468' || pass.trim() === '43490025' || pass.trim() === '26973555' || pass.trim() === '52653092' // 超量4
-        ) {
+        if (['01686814',  // 奥特玛雅·卓尔金
+            '90884403', // 究极幻神 奥特美特尔·比希巴尔金
+            '65305468', // 未来No.0 未来皇 霍普
+            '43490025', // 未来No.0 未来皇 霍普-未来斩
+            '26973555', // 未来No.0 未来龙皇 霍普
+            '52653092' // 闪光No.0 希望之异热同心
+        ].includes(pass.trim())) {
             return 0;
         }
         return number;
@@ -481,13 +485,29 @@ function parseDescription(data, lang) {
                 return char;
             });
             description = charList.join('');
+            if (lang === 'sc' || lang === 'tc') {
+                let pass = parsePassword(data);
+                if (['01686814', // 奥特玛雅·卓尔金
+                    '90884403', // 究极幻神 奥特美特尔·比希巴尔金
+                    '58293343', // 暴君爆风龙
+                    '22804644', // 死亡病毒龙
+                    '84687358', // 反射镜力龙
+                    '44373896', // 破坏轮龙
+                    '83743222', // 女神的圣弓-矢月
+                    '10960419', // 时间魔术锤
+                    '19747827', // 真红眼黑龙剑
+                    '46354113' // 火箭赫谟炮
+                ].includes(pass.trim())) {
+                    description = description.replace(/\n/g, '');
+                }
+            }
         } else {
             // 先去除换行
             if (description.indexOf('●') === -1) {
                 // 没有圆点，去除换行
                 description = description.replace(/\n/g, '');
             } else {
-                if (lang === 'sc' || lang === 'tc' || lang === 'en' || lang === 'kr') {
+                if (lang === 'sc' || lang === 'tc') {
                     description = description.replace(/\n/g, '');
                     description = description.replace(/●/g, '\n●');
                 } else if (lang !== 'jp') {
