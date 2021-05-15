@@ -10,7 +10,7 @@
 <script>
 export default {
   name: 'CompressText',
-  props: ['text', 'width', 'height', 'language', 'refreshKey', 'fontLoading', 'autoSizeElement', 'specColor'],
+  props: ['text', 'width', 'height', 'language', 'refreshKey', 'fontLoading', 'autoSizeElement', 'specColor', 'limit'],
   data() {
     return {
       noCompress: '●①②③④⑤⑥⑦⑧⑨⑩',
@@ -20,6 +20,7 @@ export default {
   computed: {
     compressParams() {
       return {
+        limit: this.limit,
         specColor: this.specColor,
         width: this.width,
         height: this.height,
@@ -128,13 +129,14 @@ export default {
           let start = 0;
           let end = 1;
           let time = 0;
+          let limit = parseInt(params.limit);
           while (scale > 0) {
             time++;
-            scale = (start + end) / 2;
+            scale = (start + end) / (params.language === 'en' ? 2 : 2.05);
             el.style.width = `${params.width / scale}px`;
             el.style.transform = `scaleX(${scale})`;
             el.clientHeight > params.height ? end = scale : start = scale;
-            if ((el.clientHeight <= params.height && end - start <= /*0.01*/ 0.02) || time > 9) {
+            if ((el.clientHeight <= params.height && end - start <= /*0.01*/ 0.02) || (time > limit)) {
               // 如果是英文，灵摆和效果栏字体判断缩小
               if (params.language === 'en' && params.autoSizeElement && (scale < 0.5)) {
                 // 防止死循环

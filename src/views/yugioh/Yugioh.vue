@@ -5,7 +5,7 @@
         <div class="yugioh-card" :class="cardClass" :style="cardStyle" ondragstart="return false">
 
           <div class="card-name" v-name-color="form.color">
-            <CompressText :text="form.name" :refreshKey="refreshKey" :fontLoading="fontLoading" :width="1030" :height="200" :specColor="form.redName" :language="form.language"></CompressText>
+            <CompressText :text="form.name" :refreshKey="refreshKey" :fontLoading="fontLoading" :width="1030" :height="200" :specColor="form.redName" :language="form.language" :limit="15"></CompressText>
           </div>
           <div class="card-attribute">
             <el-image :src="attributeSrc"></el-image>
@@ -25,14 +25,14 @@
 
           <div class="spell-trap-link" v-if="['spell','trap'].includes(form.type) && form.icon.startsWith('link-')">
             <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? '[' : '【' }}</span>
-            <CompressText :text="spellTrapLinkName" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
+            <CompressText :text="spellTrapLinkName" :refreshKey="refreshKey" :fontLoading="fontLoading" :limit="8"></CompressText>
             <el-image class="spell-trap-icon" v-if="['link-filed', 'link-quick-play', 'link-equip', 'link-continuous', 'link-ritual', 'link-counter'].includes(form.icon)" :src="baseImage(`/icon-${form.icon.replace('link-', '')}.png`)"></el-image>
             <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? ']' : '】' }}</span>
           </div>
 
           <div class="spell-trap" v-if="['spell','trap'].includes(form.type) && !form.icon.startsWith('link-')">
             <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? '[' : '【' }}</span>
-            <CompressText :text="spellTrapName" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
+            <CompressText :text="spellTrapName" :refreshKey="refreshKey" :fontLoading="fontLoading" :limit="8"></CompressText>
             <el-image class="spell-trap-icon" v-if="['filed', 'quick-play', 'equip', 'continuous', 'ritual', 'counter'].includes(form.icon)" :src="baseImage(`/icon-${form.icon}.png`)"></el-image>
             <span>{{ (form.language === 'as' || form.language === 'or') ? '' : ['en', 'kr'].includes(form.language) ? ']' : '】' }}</span>
           </div>
@@ -69,7 +69,7 @@
 
           <div class="pendulum-description" v-if="form.type==='pendulum'">
             <CompressText :text="form.pendulumDescription" :width="950" :height="230" :refreshKey="refreshKey" :fontLoading="fontLoading"
-                          :language="form.language" autoSizeElement=".pendulum-description"></CompressText>
+                          :language="form.language" autoSizeElement=".pendulum-description" :limit="8"></CompressText>
           </div>
 
           <div class="card-package" :style="packageStyle">
@@ -109,7 +109,7 @@
           <div class="card-description" v-card-description>
             <div v-if="['monster','pendulum'].includes(form.type)" class="card-effect">
               <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? '[' : '【' }}</span>
-              <CompressText :text="form.monsterType" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
+              <CompressText :text="form.monsterType" :refreshKey="refreshKey" :fontLoading="fontLoading" :limit="8"></CompressText>
               <span>{{ (form.language === 'as' || form.language === 'or') ? '' : form.language === 'en' ? ']' : '】' }}</span>
             </div>
 
@@ -117,7 +117,7 @@
               <!-- 只有一行的情况，无论如何都全文本压缩 -->
               <div v-if="form.description.split('\n').length === 1">
                 <CompressText :text="form.description" :width="1170" :height="300" :refreshKey="refreshKey" :fontLoading="fontLoading"
-                              :language="form.language" autoSizeElement=".card-description"></CompressText>
+                              :language="form.language" autoSizeElement=".card-description" :limit="8"></CompressText>
               </div>
               <div v-else>
                 <template v-for="(item,index) in form.description.split('\n')">
@@ -125,21 +125,21 @@
                   <div v-if="index === 0">
                     <!-- 如果第一行压缩 -->
                     <div v-if="form.firstLineCompress">
-                      <CompressText :text="item" :width="1170" :height="70" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
+                      <CompressText :text="item" :width="1170" :height="70" :refreshKey="refreshKey" :fontLoading="fontLoading" :limit="8"></CompressText>
                     </div>
                     <!-- 否则按其他行一样处理 -->
                     <div v-else>
-                      <CompressText :text="item" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
+                      <CompressText :text="item" :refreshKey="refreshKey" :fontLoading="fontLoading" :limit="8"></CompressText>
                     </div>
                   </div>
                   <!--中间行不压缩-->
                   <div v-if="index > 0 && index < (form.description.split('\n').length - 1)">
-                    <CompressText :text="item" :refreshKey="refreshKey" :fontLoading="fontLoading"></CompressText>
+                    <CompressText :text="item" :refreshKey="refreshKey" :fontLoading="fontLoading" :limit="8"></CompressText>
                   </div>
                   <!--最后一行压缩-->
                   <div v-if="index !== 0 && index === (form.description.split('\n').length - 1)" class="last-description">
                     <CompressText :text="item" :width="1170" :height="lastDescriptionHeight" :refreshKey="refreshKey" :fontLoading="fontLoading"
-                                  :language="form.language" autoSizeElement=".card-description"></CompressText>
+                                  :language="form.language" autoSizeElement=".card-description" :limit="8"></CompressText>
                   </div>
                   <!--item为空提供换行-->
                   <br v-if="!item">
@@ -155,17 +155,17 @@
           </div>
 
           <div class="card-atk" v-if="['monster','pendulum'].includes(form.type)">
-            <span v-if="form.atk >= 10000">
-              <CompressText :text="`${form.atk}`" :width="400" :height="61"></CompressText>
-            </span>
-
-            <span v-if="form.atk >= 0 && form.atk <= 9999">{{ form.atk }}</span>
+            <span v-if="form.atk >= 100000 && form.atk <= 999999" class="atk100000">{{form.atk}}</span>
+            <span v-else-if="form.atk >= 10000 && form.atk <= 99999" class="atk10000">{{ form.atk }}</span>
+            <span v-else-if="form.atk >= 0 && form.atk <= 9999">{{ form.atk }}</span>
             <span v-else-if="form.atk === -1">?</span>
             <span v-else-if="form.atk === -2"><span class="card-atk-infinate"><b>∞</b></span></span>
           </div>
 
           <div class="card-def" v-if="(form.type==='monster'&&form.cardType!=='link')||(form.type==='pendulum' && form.pendulumType !== 'link-pendulum')">
-            <span v-if="form.def >= 0">{{ form.def }}</span>
+            <span v-if="form.def >= 100000 && form.def <= 999999" class="def100000">{{form.def}}</span>
+            <span v-else-if="form.def >= 10000 && form.def <= 99999" class="def10000">{{form.def}}</span>
+            <span v-else-if="form.def >= 0">{{ form.def }}</span>
             <span v-else-if="form.def === -1">?</span>
             <span v-else-if="form.atk === -2"><span class="card-def-infinate"><b>∞</b></span></span>
           </div>
@@ -223,7 +223,7 @@
                 <div style=" width: 100%; height: 40px; line-height: 40px; border-bottom: 1px solid lightgray">
                   <div style="float: left; width: 10px"><span><b>{{ item.count }}</b></span></div>
                   <div style="float: left; width: 250px; height: 40px;" v-ydk-name-color="item.name">
-                    <CompressText :text="item.name" :width="250" :height="40"></CompressText>
+                    <CompressText :text="item.name" :width="250" :height="40" :limit="8"></CompressText>
                   </div>
                   <div style="float: right; width: 32px; height: 40px;" >
                     <el-button type="warning" v-if="!batchExporting && !item.name.startsWith('!NOTFOUND!')" style="float: right; width: 32px; height: 32px; margin-top: 4px; padding: 0" @click.stop="showYdkCard(item.id);">显示</el-button>
@@ -1586,6 +1586,26 @@ export default {
       z-index: 20;
     }
 
+    .atk10000 {
+      position: absolute;
+      right: -2px;
+      top: 3px;
+      font-family: ygo-atk-def, serif;
+      font-size: 54px;
+      letter-spacing: 0;
+      z-index: 20;
+    }
+
+    .atk100000 {
+      position: absolute;
+      right: -10px;
+      top: 6px;
+      font-family: ygo-atk-def, serif;
+      font-size: 48px;
+      letter-spacing: 0;
+      z-index: 20;
+    }
+
     .card-atk-infinate {
       position: absolute;
       right: 48px;
@@ -1594,7 +1614,6 @@ export default {
       font-size: 61px;
     }
 
-
     .card-def {
       position: absolute;
       right: 124px;
@@ -1602,6 +1621,26 @@ export default {
       font-family: ygo-atk-def, serif;
       font-size: 61px;
       letter-spacing: 2px;
+      z-index: 20;
+    }
+
+    .def10000 {
+      position: absolute;
+      right: -2px;
+      top: 3px;
+      font-family: ygo-atk-def, serif;
+      font-size: 54px;
+      letter-spacing: 0;
+      z-index: 20;
+    }
+
+    .def100000 {
+      position: absolute;
+      right: -10px;
+      top: 6px;
+      font-family: ygo-atk-def, serif;
+      font-size: 48px;
+      letter-spacing: 0;
       z-index: 20;
     }
 
